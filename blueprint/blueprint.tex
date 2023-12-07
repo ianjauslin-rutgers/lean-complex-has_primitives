@@ -1,0 +1,29 @@
+\documentclass{report}
+
+\usepackage{amsmath, amsthm}
+\usepackage[showmore, dep_graph, coverage, project=../../]{blueprint}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+
+\dochome{https://jauslin.org/lean-complex-has_primitives/doc}
+
+\title{Complex Analysis: Has Primitives}
+\author{Rutgers Lean Seminar}
+
+\begin{document}
+\maketitle
+
+This is a test.
+If I want to link to a definition in the lean project, I do this:
+\begin{definition}
+  \label{def:has_primitives}
+  \lean{has_primitives}
+  Given a set $U\subset\mathbb C$, for any differentiable $f:U\to\mathbb C$, there exists a differentiable $g:U\to\mathbb C$ such that $f'=g$ on $U$.
+\end{definition}
+
+\end{document}
