@@ -3,7 +3,7 @@ doc: clean-doc
 clean-doc:
 	rm -rf .lake/build/doc/*
 doc-upload:
-	rsync -rha --progress --delete .lake/build/doc webmaster@jauslin.org:jauslin.org/lean-complex-has_primitives-doc/doc
+	rsync -rha --progress --delete .lake/build/doc/ webmaster@jauslin.org:jauslin.org/lean-complex-has_primitives-doc/doc/
 
 blueprint: clean-blueprint
 	make -C blueprint
@@ -11,7 +11,7 @@ blueprint: clean-blueprint
 clean-blueprint:
 	make -C blueprint clean
 blueprint-upload:
-	rsync -rha --progress --delete blueprint/web webmaster@jauslin.org:jauslin.org/lean-complex-has_primitives-doc/blueprint
+	rsync -rha --progress --delete blueprint/web/ webmaster@jauslin.org:jauslin.org/lean-complex-has_primitives-doc/blueprint/
 
 upload: doc-upload blueprint-upload
 
