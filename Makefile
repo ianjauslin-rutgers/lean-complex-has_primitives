@@ -6,6 +6,7 @@ build:
 	$(LAKEBIN) build
 
 doc: clean-doc
+	$(LAKEBIN) -R -Kenv=dev update
 	$(LAKEBIN) -R -Kenv=dev build HasPrimitives:docs
 clean-doc:
 	rm -rf .lake/build/doc/*
