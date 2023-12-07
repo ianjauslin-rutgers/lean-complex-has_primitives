@@ -61,9 +61,12 @@ jobs:
       - name: Build blueprint and copy to `docs/blueprint`
         run: |
           make blueprint
+          mkdir -p docs
+          mv blueprint/web docs/
 
       - name: Copy documentation to `docs/docs`
         run: |
+          mkdir -p docs
           cp -r .lake/build/doc docs/docs
 
       - name: Bundle dependencies
