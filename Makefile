@@ -1,10 +1,12 @@
+LAKEBIN=lake
+
 build:
-	lake update
-	lake exe cache get
-	lake build
+	$(LAKEBIN) update
+	$(LAKEBIN) exe cache get
+	$(LAKEBIN) build
 
 doc: clean-doc
-	lake -R -Kenv=dev build HasPrimitives:docs
+	$(LAKEBIN) -R -Kenv=dev build HasPrimitives:docs
 clean-doc:
 	rm -rf .lake/build/doc/*
 
