@@ -15,11 +15,25 @@
 \title{Complex Analysis: Has Primitives}
 \author{Rutgers Lean Seminar}
 
+%
+% This is a blueprint for the HasPrimitives project, written by the Rutgers Lean Group
+% 
+% This blueprint can be edited like a standard LaTeX document.
+%
+% There are 3 useful commands that are specific to lean:
+%   * \lean{ref}: is used in a definition, lemma or theorem, and is the name of
+%                 the lean object corresponding to the definition, lemma or theorem.
+%   * \leanok: is used in a lemma or theorem: marks that the lemma or theorem
+%              has been fully formalized
+%   * \uses{ref}: is used in a proof environment: specifies which lean objects
+%                 are used in the proof
+%
+
 \begin{document}
 \maketitle
 
-This is a test.
-If I want to link to a definition in the lean project, I do this:
+This project aims to formalize a proof that holomorphic functions on simply connected open sets have primitives.
+
 \begin{definition}
   \label{def:has_primitives}
   \lean{has_primitives}
