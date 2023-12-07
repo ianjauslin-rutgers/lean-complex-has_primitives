@@ -1,7 +1,7 @@
 # Complex Analysis: Has Primitives
 ## Rutgers Lean Seminar
 
-This project has a blueprint, which, for the moment, is available at <https://jauslin.org/lean-complex-has_primitives-doc/blueprint/>
+This project has a blueprint, which is available at <https://ianjauslin-rutgers.github.io/lean-complex-has_primitives/web/>
 
 ## Building the project
 
