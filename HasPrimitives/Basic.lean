@@ -39,23 +39,39 @@ lemma derivOfLinint (z₀ : ℂ) (f: ℂ → ℂ) (hf: Continuous f) (l: Filter 
     Asymptotics.IsLittleO l (fun h ↦ ((linint z₀ (z₀+h) f) - h*(f z₀))) (fun h ↦ h) := by
   sorry
 
+-- trivial case: empty set
+theorem hasPrimitivesOfEmpty : hasPrimitives ∅ := by
+  dsimp [hasPrimitives]
+  simp only [Set.eqOn_empty, and_true]
+  dsimp [DifferentiableOn]
+  dsimp [DifferentiableWithinAt]
+  dsimp [HasFDerivWithinAt]
+  dsimp [HasFDerivAtFilter]
+  simp only [Set.mem_empty_iff_false, nhdsWithin_empty, map_sub, IsEmpty.forall_iff, forall_const, exists_const,
+  forall_true_left]
+
+
 -- To prove the main theorem, we first prove it on a disc
 -- not sure what happens if U is empty
-theorem hasPrimitivesOfConvex (U: Set ℂ) (hU: Convex ℝ U) (hne: Nonempty U) : hasPrimitives U := by
-  intros f hf_diff
-  use fun z ↦ linint 0 z f
-  constructor
-  · sorry
+theorem hasPrimitivesOfConvex (U: Set ℂ) (hU: Convex ℝ U) : hasPrimitives U := by
+  by_cases hne : U = ∅
+  · convert hasPrimitivesOfEmpty
 
-  · intro z  hz
+  · intros f hf_diff
     -- get z₀
+    have : Nonempty U := Set.nonempty_iff_ne_empty'.mpr hne
     obtain ⟨z₀,hz₀⟩ := Set.exists_mem_of_nonempty U
-    have : ∀ h : ℂ, z+h∈ U → linint z₀ (z+h) f - linint z₀ z f = linint z (z+h) f:= by
-      intros h hinU
-      refine diffOfIntegrals U hU z₀ (z+h) z ?_ hinU hz f hf_diff
+    use fun z ↦ linint z₀ z f
+    constructor
+    · sorry
 
-      exact Subtype.mem z₀
-    sorry
+    · intro z  hz
+      have : ∀ h : ℂ, z+h∈ U → linint z₀ (z+h) f - linint z₀ z f = linint z (z+h) f:= by
+        intros h hinU
+        refine diffOfIntegrals U hU z₀ (z+h) z ?_ hinU hz f hf_diff
+
+        exact Subtype.mem z₀
+      sorry
   
 
 -- main theorem: holomorphic functions on simply connected open sets have primitives
