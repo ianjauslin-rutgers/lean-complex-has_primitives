@@ -18,12 +18,11 @@ def hasPrimitives (U : Set ℂ) : Prop :=
 noncomputable def curvint (t₁ t₂ : ℝ) (f : ℂ → ℂ) (γ : ℝ → ℂ) : ℂ :=
   ∫ t in t₁..t₂, deriv γ t • f (γ t)
 
-namespace Real
 -- A useful function: goes from z₁ to z₂ with a speed that vanishes at the endpoints
 -- Having a vanishing speed at the endpoints allows paths that are differentiable by parts to be
 --  parametrized in a differentiable way
 noncomputable def straightSeg (t₁ t₂ : ℝ ) (z₁ z₂ : ℂ) : ℝ → ℂ :=
-  fun t => z₁ * (1 - cos (t * π / (t₂ - t₁))) + z₂ * cos (t * π / (t₂ - t₁))
+  fun t => z₁ * (1 - Real.cos (t * Real.pi / (t₂ - t₁))) + z₂ * Real.cos (t * Real.pi / (t₂ - t₁))
 
 -- straight line integral between two complex points
 noncomputable def linint (z₁ z₂ : ℂ) (f : ℂ → ℂ) : ℂ :=
