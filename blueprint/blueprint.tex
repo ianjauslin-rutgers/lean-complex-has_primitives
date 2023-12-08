@@ -63,32 +63,31 @@ The main result is
   sorry
 \end{proof}
 
-\section{Primitives on a disc}
-The idea of the proof of the main theorem is to first prove it on a disc, and then to extend to all simply connected sets.
-
-The main result on the unit disc is
+\section{Primitives on a convex set}
+The idea of the proof of the main theorem is to first prove it on a convex set, and then to extend to all simply connected sets.
 
 \begin{theorem}
-  \label{hasPrimitivesOfDisc}
-  \lean{hasPrimitivesOfDisc}\leanok
+  \label{hasPrimitivesOfConvex}
+  \lean{hasPrimitivesOfConvex}\leanok
   \uses{hasPrimitives}
-  The unit complex disc has primitives, in the sense of Definition \ref{hasPrimitives}.
+  An open convex set has primitives, in the sense of Definition \ref{hasPrimitives}.
 \end{theorem}
 
 \begin{proof}
   \uses{linint,diffOfIntegrals,derivOfLinint}
-  Given a function $f$ that is holomorphic on the unit disc, we construct its primitive by integrating $f$ over a line from the origin to $z$: for $z\in\mathbb C$,
+  Consider a convex set $U$ and a point $z_0\in U$.
+  Given a function $f$ that is holomorphic on $U$, we construct its primitive by integrating $f$ over a line from $z_0$ to $z$: for $z\in U$,
   \begin{equation}
-    g(z)=\int_{0\to z}\ f(z)\ dz
+    g(z)=\int_{z_0\to z}\ f(z)\ dz
   \end{equation}
-  where $\int_{0\to z}$ is defined in Definition \ref{linint}.
+  where $\int_{z_0\to z}$ is defined in Definition \ref{linint}.
   We are then left with proving that $g$ is differentiable and that $g'=f$.
 
   To do so, we compute
   \begin{equation}
     \frac{g(z+h)-g(z)}h
     =
-    \frac{\int_{0\to z+h} f(x)\ dx-\int_{0\to z} f(x)\ dx}h
+    \frac{\int_{z_0\to z+h} f(x)\ dx-\int_{z_0\to z} f(x)\ dx}h
   \end{equation}
   which by Lemma \ref{diffOfIntegrals}, is
   \begin{equation}
@@ -118,7 +117,7 @@ In the proof of Theorem \ref{hasPrimitivesOfDisc}, we use the following lemmas.
   \label{diffOfIntegrals}
   \lean{diffOfIntegrals}\leanok
   \uses{linint}
-  Given $z_0,z_1,z_2$ in the unit complex disc and a function $f$ that is holomorphic on the unit complex disc,
+  Given a convex open set $U$, $z_0,z_1,z_2\in U$ and a function $f$ that is holomorphic on the unit complex disc,
   \begin{equation}
     \int_{z_0\to z_1} f(x)\ dx
     -
@@ -130,7 +129,10 @@ In the proof of Theorem \ref{hasPrimitivesOfDisc}, we use the following lemmas.
 \end{lemma}
 
 \begin{proof}
-  sorry
+  Consider the path $z_0\to z_1\to z_2$.
+  Since $U$ is convex, the area enclosed by this path is a subset of $U$.
+  Therefore, by Cauchy's theorem, the integral of $f$ over this path is 0.
+  We conclude the proof by splitting the path into its components.
 \end{proof}
 
 \begin{lemma}
@@ -139,13 +141,21 @@ In the proof of Theorem \ref{hasPrimitivesOfDisc}, we use the following lemmas.
   \uses{linint}
   Given a continuous function $f:\mathbb C\to\mathbb C$ and $z_0\in\mathbb C$,
   \begin{equation}
-    \lim_{h\to0}\frac{\int_{z_0\to z_0+h}f(x)\ dx}h=f(z_0)
+    \lim_{h\to0}\frac1h\int_{z_0\to z_0+h}f(x)\ dx=f(z_0)
     .
   \end{equation}
 \end{lemma}
 
 \begin{proof}
-  sorry
+  Since $f$ is continuous,
+  \begin{equation}
+    \int_{z_0\to z_0+h}f(x)\ dx
+    =
+    \int_{z_0\to z_0+h}f(z_0)+o(1)\ dx
+    =
+    hf(z_0)+o(h)
+    .
+  \end{equation}
 \end{proof}
 
 \end{document}
