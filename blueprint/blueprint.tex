@@ -21,12 +21,14 @@
 % This blueprint can be edited like a standard LaTeX document.
 %
 % There are 3 useful commands that are specific to lean:
-%   * \lean{ref}: is used in a definition, lemma or theorem, and is the name of
-%                 the lean object corresponding to the definition, lemma or theorem.
+%   * \lean{leanref}: is used in a definition, lemma or theorem, and is the
+%		      name of the lean object corresponding to the definition,
+%		      lemma or theorem.
 %   * \leanok: is used in a lemma or theorem: marks that the lemma or theorem
 %              has been fully formalized
-%   * \uses{ref}: is used in a proof environment: specifies which lean objects
-%                 are used in the proof
+%   * \uses{ref}: is used in a proof environment: specifies which definitions,
+%                 lemma, theorems are used in the proof. Note that 'ref' is a
+%                 LaTeX ref, not a lean one.
 %
 
 \begin{document}
@@ -38,33 +40,39 @@ This project aims to formalize a proof that holomorphic functions on simply conn
 
 \section{Main result}
 
+
 We define the notion of a primitive as follows.
 
 \begin{definition}
-  \label{def:hasPrimitives}
+  \label{hasPrimitives}
   \lean{hasPrimitives}\leanok
   Given a set $U\subset\mathbb C$, for any differentiable $f:U\to\mathbb C$, there exists a differentiable $g:U\to\mathbb C$ such that $f'=g$ on $U$.
 \end{definition}
 
 The main result is
+
 \begin{theorem}
-  \label{theo:hasPrimitivesOfSimplyConnected}
+  \label{hasPrimitivesOfSimplyConnected}
   \lean{hasPrimitivesOfSimplyConnected}\leanok
-  Given an open, simply connected set $U\subset\mathbb C$, $U$ has primitives, in the sense of Definition \ref{def:hasPrimitives}.
+  \uses{hasPrimitives}
+  Given an open, simply connected set $U\subset\mathbb C$, $U$ has primitives, in the sense of Definition \ref{hasPrimitives}.
 \end{theorem}
 
 \begin{proof}
-  \uses{theo:hasPrimitivesOfDisc}
-\end{prood}
+  \uses{hasPrimitivesOfDisc}
+  sorry
+\end{proof}
 
 \section{Primitives on a disc}
 The idea of the proof of the main theorem is to first prove it on a disc, and then to extend to all simply connected sets.
 
 The main result on the unit disc is
+
 \begin{theorem}
-  \label{theo:hasPrimitivesOfDisc}
+  \label{hasPrimitivesOfDisc}
   \lean{hasPrimitivesOfDisc}\leanok
-  The unit complex disc has primitives, in the sense of Definition \ref{def:hasPrimitives}.
+  \uses{hasPrimitives}
+  The unit complex disc has primitives, in the sense of Definition \ref{hasPrimitives}.
 \end{theorem}
 
 \begin{proof}
@@ -73,7 +81,7 @@ The main result on the unit disc is
   \begin{equation}
     g(z)=\int_{0\to z}\ f(z)\ dz
   \end{equation}
-  where $\int_{0\to z}$ is defined in Definition \ref{def:linint}.
+  where $\int_{0\to z}$ is defined in Definition \ref{linint}.
   We are then left with proving that $g$ is differentiable and that $g'=f$.
 
   To do so, we compute
@@ -82,22 +90,21 @@ The main result on the unit disc is
     =
     \frac{\int_{0\to z+h} f(x)\ dx-\int_{0\to z} f(x)\ dx}h
   \end{equation}
-  which by Lemma \ref{lemma:diffOfIntegrals}, is
+  which by Lemma \ref{diffOfIntegrals}, is
   \begin{equation}
     \frac{g(z+h)-g(z)}h
     =
     \frac{\int_{z\to z+h} f(x)\ dx}h
     .
   \end{equation}
-  We then conclude using Lemma \ref{lemma:derivOfLinint}.
+  We then conclude using Lemma \ref{derivOfLinint}.
 \end{proof}
 
 The integral over the line from $z_1$ to $z_2$ is defined as follows.
 
 \begin{definition}
-  \label{def:linint}
+  \label{linint}
   \lean{linint}\leanok
-  \uses{straightSeg,curvint}
   Given $z_1,z_2\in\mathbb C$ and a function $f:\mathbb C\to\mathbb C$, the path from $z_1$ to $z_2$ is defined as
   \begin{equation}
     \gamma(t):=z_1(1-\cos(t\pi))+z_2\cos(t\pi)
@@ -105,11 +112,12 @@ The integral over the line from $z_1$ to $z_2$ is defined as follows.
   and $\int_{z_1\to z_2}$ is defined as the complex integral along this path.
 \end{definition}
 
-In the proof of Theorem \ref{theo:hasPrimitivesOfDisc}, we use the following lemmas.
+In the proof of Theorem \ref{hasPrimitivesOfDisc}, we use the following lemmas.
 
 \begin{lemma}
-  \label{lemma:diffOfIntegrals}
+  \label{diffOfIntegrals}
   \lean{diffOfIntegrals}\leanok
+  \uses{linint}
   Given $z_0,z_1,z_2$ in the unit complex disc and a function $f$ that is holomorphic on the unit complex disc,
   \begin{equation}
     \int_{z_0\to z_1} f(x)\ dx
@@ -122,11 +130,13 @@ In the proof of Theorem \ref{theo:hasPrimitivesOfDisc}, we use the following lem
 \end{lemma}
 
 \begin{proof}
+  sorry
 \end{proof}
 
 \begin{lemma}
-  \label{lemma:derivOfLinint}
+  \label{derivOfLinint}
   \lean{derivOfLinint}\leanok
+  \uses{linint}
   Given a continuous function $f:\mathbb C\to\mathbb C$ and $z_0\in\mathbb C$,
   \begin{equation}
     \lim_{h\to0}\frac{\int_{z_0\to z_0+h}f(x)\ dx}h=f(z_0)
@@ -135,6 +145,7 @@ In the proof of Theorem \ref{theo:hasPrimitivesOfDisc}, we use the following lem
 \end{lemma}
 
 \begin{proof}
+  sorry
 \end{proof}
 
 \end{document}
