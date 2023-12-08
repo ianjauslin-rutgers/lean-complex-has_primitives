@@ -34,7 +34,7 @@ lemma diffOfIntegrals (z₀ z₁ z₂ : Complex.UnitDisc) (f : ℂ → ℂ)
   sorry
 
 lemma derivOfLinint (z₀ : ℂ) (f: ℂ → ℂ) (hf: Continuous f) (l: Filter ℂ):
-    ∀ᶠh in l, (linint z₀ (z₀+h) f)/h = f z₀ := by
+    Asymptotics.IsLittleO l (fun h ↦ ((linint z₀ (z₀+h) f) - h*(f z₀))) (fun h ↦ h) := by
   sorry
 
 -- To prove the main theorem, we first prove it on a disc
