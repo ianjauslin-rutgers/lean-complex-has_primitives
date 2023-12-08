@@ -34,10 +34,107 @@
 
 This project aims to formalize a proof that holomorphic functions on simply connected open sets have primitives.
 
+\chapter{The project}
+
+\section{Main result}
+
+We define the notion of a primitive as follows.
+
 \begin{definition}
-  \label{def:has_primitives}
-  \lean{has_primitives}
+  \label{def:hasPrimitives}
+  \lean{hasPrimitives}\leanok
   Given a set $U\subset\mathbb C$, for any differentiable $f:U\to\mathbb C$, there exists a differentiable $g:U\to\mathbb C$ such that $f'=g$ on $U$.
 \end{definition}
+
+The main result is
+\begin{theorem}
+  \label{theo:hasPrimitivesOfSimplyConnected}
+  \lean{hasPrimitivesOfSimplyConnected}\leanok
+  Given an open, simply connected set $U\subset\mathbb C$, $U$ has primitives, in the sense of Definition \ref{def:hasPrimitives}.
+\end{theorem}
+
+\begin{proof}
+  \uses{theo:hasPrimitivesOfDisc}
+\end{prood}
+
+\section{Primitives on a disc}
+The idea of the proof of the main theorem is to first prove it on a disc, and then to extend to all simply connected sets.
+
+The main result on the unit disc is
+\begin{theorem}
+  \label{theo:hasPrimitivesOfDisc}
+  \lean{hasPrimitivesOfDisc}\leanok
+  The unit complex disc has primitives, in the sense of Definition \ref{def:hasPrimitives}.
+\end{theorem}
+
+\begin{proof}
+  \uses{linint,diffOfIntegrals,derivOfLinint}
+  Given a function $f$ that is holomorphic on the unit disc, we construct its primitive by integrating $f$ over a line from the origin to $z$: for $z\in\mathbb C$,
+  \begin{equation}
+    g(z)=\int_{0\to z}\ f(z)\ dz
+  \end{equation}
+  where $\int_{0\to z}$ is defined in Definition \ref{def:linint}.
+  We are then left with proving that $g$ is differentiable and that $g'=f$.
+
+  To do so, we compute
+  \begin{equation}
+    \frac{g(z+h)-g(z)}h
+    =
+    \frac{\int_{0\to z+h} f(x)\ dx-\int_{0\to z} f(x)\ dx}h
+  \end{equation}
+  which by Lemma \ref{lemma:diffOfIntegrals}, is
+  \begin{equation}
+    \frac{g(z+h)-g(z)}h
+    =
+    \frac{\int_{z\to z+h} f(x)\ dx}h
+    .
+  \end{equation}
+  We then conclude using Lemma \ref{lemma:derivOfLinint}.
+\end{proof}
+
+The integral over the line from $z_1$ to $z_2$ is defined as follows.
+
+\begin{definition}
+  \label{def:linint}
+  \lean{linint}\leanok
+  \uses{straightSeg,curvint}
+  Given $z_1,z_2\in\mathbb C$ and a function $f:\mathbb C\to\mathbb C$, the path from $z_1$ to $z_2$ is defined as
+  \begin{equation}
+    \gamma(t):=z_1(1-\cos(t\pi))+z_2\cos(t\pi)
+  \end{equation}
+  and $\int_{z_1\to z_2}$ is defined as the complex integral along this path.
+\end{definition}
+
+In the proof of Theorem \ref{theo:hasPrimitivesOfDisc}, we use the following lemmas.
+
+\begin{lemma}
+  \label{lemma:diffOfIntegrals}
+  \lean{diffOfIntegrals}\leanok
+  Given $z_0,z_1,z_2$ in the unit complex disc and a function $f$ that is holomorphic on the unit complex disc,
+  \begin{equation}
+    \int_{z_0\to z_1} f(x)\ dx
+    -
+    \int_{z_0\to z_2} f(x)\ dx
+    =
+    \int_{z_2\to z_1} f(x)\ dx
+    .
+  \end{equation}
+\end{lemma}
+
+\begin{proof}
+\end{proof}
+
+\begin{lemma}
+  \label{lemma:derivOfLinint}
+  \lean{derivOfLinint}\leanok
+  Given a continuous function $f:\mathbb C\to\mathbb C$ and $z_0\in\mathbb C$,
+  \begin{equation}
+    \lim_{h\to0}\frac{\int_{z_0\to z_0+h}f(x)\ dx}h=f(z_0)
+    .
+  \end{equation}
+\end{lemma}
+
+\begin{proof}
+\end{proof}
 
 \end{document}

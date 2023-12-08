@@ -38,8 +38,8 @@ lemma derivOfLinint (z₀ : ℂ) (f: ℂ → ℂ) (hf: Continuous f) (l: Filter 
     ∀ᶠh in l, (linint z₀ (z₀+h) f)/h = f z₀ := by
   sorry
 
--- To prove the main theorem, we first prove it on a disk
-theorem hasPrimitivesOfDisk : hasPrimitives (Metric.ball 0 1) := by
+-- To prove the main theorem, we first prove it on a disc
+theorem hasPrimitivesOfDisc : hasPrimitives (Metric.ball 0 1) := by
   intros f hf_diff
   use fun z ↦ linint 0 z f
   constructor
