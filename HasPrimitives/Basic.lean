@@ -1,7 +1,7 @@
 import Mathlib.AlgebraicTopology.FundamentalGroupoid.SimplyConnected
 import Mathlib.Analysis.Calculus.Deriv.Basic
 import Mathlib.Analysis.Complex.Basic
-import Mathlib.Analysis.Complex.UnitDisc.Basic
+import Mathlib.Analysis.Convex.Basic
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 import Mathlib.MeasureTheory.Integral.IntervalIntegral
 
@@ -28,8 +28,10 @@ noncomputable def straightSeg (t₁ t₂ : ℝ ) (z₁ z₂ : ℂ) : ℝ → ℂ
 noncomputable def linint (z₁ z₂ : ℂ) (f : ℂ → ℂ) : ℂ :=
   curvint 0 1 f (straightSeg 0 1 z₁ z₂)
 
-lemma diffOfIntegrals (z₀ z₁ z₂ : Complex.UnitDisc) (f : ℂ → ℂ)
-    (hf : DifferentiableOn ℂ f (Metric.ball 0 1)) :
+lemma diffOfIntegrals (U: Set ℂ) (hU: Convex ℝ U)
+    (z₀ z₁ z₂ : ℂ) (hz₀: z₀ ∈ U) (hz₁: z₁ ∈ U) (hz₂: z₂ ∈ U)
+    (f : ℂ → ℂ)
+    (hf : DifferentiableOn ℂ f U) :
     linint z₀ z₁ f - linint z₀ z₂ f = linint z₂ z₁ f := by
   sorry
 
@@ -38,27 +40,22 @@ lemma derivOfLinint (z₀ : ℂ) (f: ℂ → ℂ) (hf: Continuous f) (l: Filter 
   sorry
 
 -- To prove the main theorem, we first prove it on a disc
-theorem hasPrimitivesOfDisc : hasPrimitives (Metric.ball 0 1) := by
+-- not sure what happens if U is empty
+theorem hasPrimitivesOfConvex (U: Set ℂ) (hU: Convex ℝ U) (hne: Nonempty U) : hasPrimitives U := by
   intros f hf_diff
   use fun z ↦ linint 0 z f
   constructor
   · sorry
 
   · intro z  hz
-    let z_ondisc := (Complex.UnitDisc.mk z ?_)
-    have : ∀ h : Complex.UnitDisc, Complex.abs (z_ondisc+h) < 1 → linint 0 (z+h) f - linint 0 z f = linint z (z+h) f:= by
-      intros h ondisc
-      let zph_ondisc := (Complex.UnitDisc.mk (z+h) ?_)
-      have := diffOfIntegrals 0 zph_ondisc z_ondisc f hf_diff
-      rw [Complex.UnitDisc.coe_mk] at this
-      rw [Complex.UnitDisc.coe_mk] at this
-      exact this
+    -- get z₀
+    obtain ⟨z₀,hz₀⟩ := Set.exists_mem_of_nonempty U
+    have : ∀ h : ℂ, z+h∈ U → linint z₀ (z+h) f - linint z₀ z f = linint z (z+h) f:= by
+      intros h hinU
+      refine diffOfIntegrals U hU z₀ (z+h) z ?_ hinU hz f hf_diff
 
-      sorry
-      sorry
-
+      exact Subtype.mem z₀
     sorry
-
   
 
 -- main theorem: holomorphic functions on simply connected open sets have primitives
