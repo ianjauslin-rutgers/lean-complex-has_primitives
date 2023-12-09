@@ -106,7 +106,7 @@ The integral over the line from $z_1$ to $z_2$ is defined as follows.
   \lean{linint}\leanok
   Given $z_1,z_2\in\mathbb C$ and a function $f:\mathbb C\to\mathbb C$, the path from $z_1$ to $z_2$ is defined as
   \begin{equation}
-    \gamma(t):=z_1(1-\cos(t\pi))+z_2\cos(t\pi)
+    \gamma(t):=z_1(1-t)+z_2 t
   \end{equation}
   and $\int_{z_1\to z_2}$ is defined as the complex integral along this path.
 \end{definition}
@@ -117,7 +117,7 @@ In the proof of Theorem \ref{hasPrimitivesOfConvex}, we use the following lemmas
   \label{diffOfIntegrals}
   \lean{diffOfIntegrals}\leanok
   \uses{linint}
-  Given a convex open set $U$, $z_0,z_1,z_2\in U$ and a function $f$ that is holomorphic on the unit complex disc,
+  Given a convex open set $U$, $z_0,z_1,z_2\in U$ and a function $f$ that is holomorphic on $U$
   \begin{equation}
     \int_{z_0\to z_1} f(x)\ dx
     -
@@ -129,9 +129,10 @@ In the proof of Theorem \ref{hasPrimitivesOfConvex}, we use the following lemmas
 \end{lemma}
 
 \begin{proof}
+  \uses{cauchyOnTriangles}
   Consider the path $z_0\to z_1\to z_2$.
   Since $U$ is convex, the area enclosed by this path is a subset of $U$.
-  Therefore, by Cauchy's theorem, the integral of $f$ over this path is 0.
+  Therefore, by Theorem \ref{cauchyOnTriangles}, the integral of $f$ over this path is 0.
   We conclude the proof by splitting the path into its components.
 \end{proof}
 
@@ -157,5 +158,228 @@ In the proof of Theorem \ref{hasPrimitivesOfConvex}, we use the following lemmas
     .
   \end{equation}
 \end{proof}
+
+To prove Lemma \ref{diffOfIntegrals}, we use a version of Cauchy's theorem on triangles, which we prove here.
+
+\begin{theorem}
+  \label{cauchyOnTriangles}
+  \uses{linint}
+  Given $a,b,c\in\mathbb C$, and a function $f$ that is holomorphic on the triangle formed by $a,b,c$,
+  \begin{equation}
+    \int_{a\to b} f(x)\ dx
+    +
+    \int_{b\to c} f(x)\ dx
+    +
+    \int_{c\to a} f(x)\ dx
+    =0
+    .
+  \end{equation}
+\end{theorem}
+
+\begin{proof}
+  \uses{cauchyOnTriangle_base}
+  We translate $a$ and $b$ to the real line, and use Lemma \ref{cauchyOnTriangle_base}.
+\end{proof}
+
+\begin{lemma}
+  \label{cauchyOnTriangle_base}
+  \uses{linint}
+  Given $a,b\in\mathbb R$, $c\in\mathbb C$, and a function $f$ that is holomorphic on the triangle formed by $a,b,c$,
+  \begin{equation}
+    \int_{a\to b} f(x)\ dx
+    +
+    \int_{b\to c} f(x)\ dx
+    +
+    \int_{c\to a} f(x)\ dx
+    =0
+    .
+  \end{equation}
+\end{lemma}
+
+\begin{proof}
+  \uses{cauchyOnRightTriangle}
+  Let $d:=\mathcal Re(c)$.
+  Consider the triangles $(d,b,c)$ and $(d,a,c)$.
+  We have
+  \begin{equation}
+    \int_{a\to b} f(x)\ dx
+    +
+    \int_{b\to c} f(x)\ dx
+    +
+    \int_{b\to a} f(x)\ dx
+    =
+    \int_{a\to d} f(x)\ dx
+    +
+    \int_{d\to c} f(x)\ dx
+    +
+    \int_{c\to a} f(x)\ dx
+    +
+    \int_{d\to b} f(x)\ dx
+    +
+    \int_{b\to c} f(x)\ dx
+    +
+    \int_{c\to d} f(x)\ dx
+  \end{equation}
+  and we compute each groups of three using Lemma \ref{cauchyOnRightTriangle}.
+\end{proof}
+
+\begin{lemma}
+  \label{cauchyOnRightTriangle}
+  \uses{linint}
+  Given $a,b\in\mathbb R$ and $z\in\mathbb C$, and a function $f$ that is holomorphic on the triangle formed by $z,z+a,z+ib$,
+  \begin{equation}
+    \int_{z\to z+a} f(x)\ dx
+    +
+    \int_{z+a\to z+ib} f(x)\ dx
+    +
+    \int_{z+ib\to z} f(x)\ dx
+    =0
+    .
+  \end{equation}
+\end{lemma}
+
+\begin{proof}
+  \uses{cauchyOnRightTriangle_origin}
+  We shift the points by $z$ and use Lemma \ref{cauchyOnRightTriangle_origin}.
+\end{proof}
+
+\begin{lemma}
+  \label{cauchyOnRightTriangle_origin}
+  \uses{linint}
+  Given $a,b\in\mathbb R$, and a function $f$ that is holomorphic on the triangle formed by $0,a,ib$,
+  \begin{equation}
+    \int_{0\to a} f(x)\ dx
+    +
+    \int_{a\to ib} f(x)\ dx
+    +
+    \int_{ib\to 0} f(x)\ dx
+    =0
+    .
+  \end{equation}
+\end{lemma}
+
+\begin{proof}
+  \uses{cauchyRiemann}
+  Let $u:=\mathcal Re(f)$ and $v:=\mathcal Im(f)$.
+  We have
+  \begin{equation}
+    \int_{0\to a} f(x)\ dx
+    +
+    \int_{a\to ib} f(x)\ dx
+    +
+    \int_{ib\to 0} f(x)\ dx
+    =
+    \int_0^a f(x)\ dx
+    -\int_0^b if(iy)\ dy
+    +
+    \int_0^b f(a+y(i-a/b))(i-a/b)\ dy
+    .
+  \end{equation}
+  Furthermore,
+  \begin{equation}
+    \int_0^b f(a+y(i-a/b))\ dy
+    -\int_0^b f(iy)\ dy
+    =
+    \int_0^b\int_0^{a-ya/b}\ \partial_x f(x+iy)dxdy
+  \end{equation}
+  so
+  \begin{equation}
+    \int_0^a f(x)\ dx
+    -\int_0^b if(iy)\ dy
+    +
+    \int_0^b f(a+y(i-a/b))(i-a/b)\ dy
+    =
+    i\int_0^b\int_0^{a-ya/b}\ \partial_x f(x+iy)dxdx
+    -
+    \frac ab
+    \int_0^b f(a+y(i-a/b))\ dy
+    +
+    \int_0^a f(x)\ dx
+    .
+  \end{equation}
+  Now, changing variables to $x=a-ya/b$,
+  \begin{equation}
+    \frac ab
+    \int_0^b f(a+y(i-a/b))\ dy
+    =
+    \int_0^a f(ib+x(1-ib/a))\ dx
+  \end{equation}
+  and
+  \begin{equation}
+    \int_0^a f(ib+x(1-ib/a))\ dx
+    -
+    \int_0^a f(x)\ dx
+    =
+    \int_0^a\int_0^{b-xb/a)}\partial_yf(x+iy)\ dydx
+    .
+  \end{equation}
+  All in all,
+  \begin{equation}
+    \int_{0\to a} f(x)\ dx
+    +
+    \int_{a\to ib} f(x)\ dx
+    +
+    \int_{ib\to 0} f(x)\ dx
+    =
+    i\int_0^b\int_0^{a-ya/b}\ \partial_x f(x+iy)dxdy
+    -
+    \int_0^a\int_0^{b-xb/a)}\partial_yf(x+iy)\ dydx
+    .
+  \end{equation}
+  That is,
+  \begin{equation}
+    \int_{0\to a} f(x)\ dx
+    +
+    \int_{a\to ib} f(x)\ dx
+    +
+    \int_{ib\to 0} f(x)\ dx
+    =
+    i\int_0^b\int_0^{a-ya/b}\ (\partial_x u-\partial_y v)dxdy
+    -
+    \int_0^a\int_0^{b-xb/a)}(\partial_yu+\partial_x v)\ dydx
+    .
+  \end{equation}
+
+  Now by Theorem \ref{cauchyRiemann},
+  \begin{equation}
+    \partial_x u=\partial_y v
+    ,\quad
+    \partial_y u=-\partial_x v
+  \end{equation}
+  so
+  \begin{equation}
+    \int_{0\to a} f(x)\ dx
+    +
+    \int_{a\to ib} f(x)\ dx
+    +
+    \int_{ib\to 0} f(x)\ dx
+    =
+    0
+    .
+  \end{equation}
+\end{proof}
+
+\begin{theorem}
+  \label{cauchyRiemann}
+  If $f:\mathbb C\to\mathbb C$ is differentiable at $z\in\mathbb C$, then, denoting $z=x+iy$,
+  \begin{equation}
+    \partial_x\mathcal Re(f(z))=\partial_y\mathcal Im(f(z))
+    ,\quad
+    \partial_y\mathcal Re(f(z))=-\partial_x\mathcal Im(f(z))
+  \end{equation}
+\end{theorem}
+
+\begin{proof}
+  Since $f$ is differentiable, for $a\in\mathbb R$,
+  \begin{equation}
+    \lim_{a\to0}\frac{f(z+a)-f(z)}a=\frac{f(z+ia)-f(z)}{ia}
+  \end{equation}
+  that is
+  \begin{equation}
+    \partial_x f(z)=-i\partial_y f(z)
+  \end{equation}
+  from which we conclude.
+\end{proof}
+
 
 \end{document}
