@@ -44,43 +44,43 @@ This project aims to formalize a proof that holomorphic functions on simply conn
 We define the notion of a primitive as follows.
 
 \begin{definition}
-  \label{hasPrimitives}
-  \lean{hasPrimitives}\leanok
+  \label{HasPrimitives}
+  \lean{HasPrimitives}\leanok
   Given a set $U\subset\mathbb C$, for any differentiable $f:U\to\mathbb C$, there exists a differentiable $g:U\to\mathbb C$ such that $g'=f$ on $U$.
 \end{definition}
 
 The main result is
 
 \begin{theorem}
-  \label{hasPrimitivesOfSimplyConnected}
-  \lean{hasPrimitivesOfSimplyConnected}\leanok
-  \uses{hasPrimitives}
-  Given an open, simply connected set $U\subset\mathbb C$, $U$ has primitives, in the sense of Definition \ref{hasPrimitives}.
+  \label{hasPrimitives_of_simplyConnected}
+  \lean{hasPrimitives_of_simplyConnected}\leanok
+  \uses{HasPrimitives}
+  Given an open, simply connected set $U\subset\mathbb C$, $U$ has primitives, in the sense of Definition \ref{HasPrimitives}.
 \end{theorem}
 
 \begin{proof}
-  \uses{hasPrimitivesOfConvex}
+  \uses{hasPrimitives_of_disc}
   sorry
 \end{proof}
 
-\section{Primitives on a convex set}
-The idea of the proof of the main theorem is to first prove it on a convex set, and then to extend to all simply connected sets.
+\section{Primitives on a Disc}
+We first prove the main theorem on a disc.
 
 \begin{theorem}
-  \label{hasPrimitivesOfConvex}
-  \lean{hasPrimitivesOfConvex}\leanok
-  \uses{hasPrimitives}
-  An open convex set has primitives, in the sense of Definition \ref{hasPrimitives}.
+  \label{hasPrimitives_of_disc}
+  \lean{hasPrimitives_of_disc}\leanok
+  \uses{HasPrimitives}
+  A disc has primitives, in the sense of Definition \ref{HasPrimitives}.
 \end{theorem}
 
 \begin{proof}
-  \uses{linint,diffOfIntegrals,derivOfLinint}
-  Consider a convex set $U$ and a point $z_0\in U$.
-  Given a function $f$ that is holomorphic on $U$, we construct its primitive by integrating $f$ over a line from $z_0$ to $z$: for $z\in U$,
+  \uses{WedgeInt,diff_of_wedges,deriv_of_wedgeInt}
+  Consider a disc $U$ with center $z_0$.
+  Given a function $f$ that is holomorphic on $U$, we construct its primitive by integrating $f$ over a ``wedge,'' that is, a horizontal line from $z_0$ to $ \Re(z)+ i \Im(z_0)$ plus a vertical line from there to $z$: for $z\in U$,
   \begin{equation}
-    g(z)=\int_{z_0\to z}\ f(z)\ dz
+    g(z)=\int_{z_0\to_W z}\ f(z)\ dz
   \end{equation}
-  where $\int_{z_0\to z}$ is defined in Definition \ref{linint}.
+  where $\int_{z_0\to_W z}$ is defined in Definition \ref{WedgeInt}.
   We are then left with proving that $g$ is differentiable and that $g'=f$.
 
   To do so, we compute
@@ -89,297 +89,104 @@ The idea of the proof of the main theorem is to first prove it on a convex set, 
     =
     \frac{\int_{z_0\to z+h} f(x)\ dx-\int_{z_0\to z} f(x)\ dx}h
   \end{equation}
-  which by Lemma \ref{diffOfIntegrals}, is
+  which by Lemma \ref{diff_of_wedges}, is
   \begin{equation}
     \frac{g(z+h)-g(z)}h
     =
     \frac{\int_{z\to z+h} f(x)\ dx}h
     .
   \end{equation}
-  We then conclude using Lemma \ref{derivOfLinint}.
+  We then conclude using Lemma \ref{deriv_of_wedgeInt}.
 \end{proof}
 
-The integral over the line from $z_1$ to $z_2$ is defined as follows.
+The integral over the line segment from $z_1$ to $z_2$ is defined as follows.
 
 \begin{definition}
   \label{linint}
   \lean{linint}\leanok
   Given $z_1,z_2\in\mathbb C$ and a function $f:\mathbb C\to\mathbb C$, the path from $z_1$ to $z_2$ is defined as
   \begin{equation}
-    \gamma(t):=z_1(1-t)+z_2 t
+    \gamma(t):=z_1(1-t)+z_2 t,
   \end{equation}
-  and $\int_{z_1\to z_2}$ is defined as the complex integral along this path.
+  and $\int_{z_1\to z_2}$ is defined as the integral of $f$ over $\gamma$.
 \end{definition}
 
-In the proof of Theorem \ref{hasPrimitivesOfConvex}, we use the following lemmas.
+Then a wedge is the union of a horizontal line and a vertical line.
+
+\begin{definition}
+  \label{WedgeInt}
+  \lean{WedgeInt}
+  \uses{linint}
+  Given $z_1,z_2\in\mathbb C$ and a function $f:\mathbb C\to\mathbb C$, the wedge integral from $z_1$ to $z_2$ is 
+   $\int_{z_1\to_W\  z_2}$ is defined as the sum of two  complex integrals, one along the horizontal path from $z_1$ to $\Re(z_2)+i \Im(z_1)$, and another along a vertical path from there to $z_2$,
+   \begin{equation}
+      \int_{z_1\to_W\  z_2} f(x)\ dx
+      :=
+      \int_{z_1\to\Re(z_2)+i \Im(z_1)} f(x)\ dx
+      +
+      \int_{\Re(z_2)+i \Im(z_1)\to z_2} f(x)\ dx
+      .
+   \end{equation}
+   If $\Re(z_2)+i \Im(z_1)$ is not in the domain of $f$, then the wedge is defined to be zero.
+\end{definition}
+
+In the proof of Theorem \ref{hasPrimitives_of_disc}, we use the following lemmas.
 
 \begin{lemma}
-  \label{diffOfIntegrals}
-  \lean{diffOfIntegrals}\leanok
-  \uses{linint}
-  Given a convex open set $U$, $z_0,z_1,z_2\in U$ and a function $f$ that is holomorphic on $U$
+  \label{diff_of_wedges}
+  \lean{diff_of_wedges}
+  \uses{WedgeInt}
+  Given an open disc $U$ with center $z_0$, $z\in U$, and small enough $h\in \mathbb C$, and a function $f$ that is holomorphic on $U$
   \begin{equation}
-    \int_{z_0\to z_1} f(x)\ dx
+    \int_{z_0\to_W (z+h)} f(x)\ dx
     -
-    \int_{z_0\to z_2} f(x)\ dx
+    \int_{z_0\to_W z} f(x)\ dx
     =
-    \int_{z_2\to z_1} f(x)\ dx
+    \int_{z\to_W (z+h)} f(x)\ dx
     .
   \end{equation}
 \end{lemma}
 
 \begin{proof}
-  \uses{cauchyOnTriangles}
-  Consider the path $z_0\to z_1\to z_2$.
-  Since $U$ is convex, the area enclosed by this path is a subset of $U$.
-  Therefore, by Theorem \ref{cauchyOnTriangles}, the integral of $f$ over this path is 0.
-  We conclude the proof by splitting the path into its components.
+  The proof is by adding and subtracting segments to make rectangles, and using that integrals over rectangles vanish.
 \end{proof}
 
 \begin{lemma}
-  \label{derivOfLinint}
-  \lean{derivOfLinint}\leanok
-  \uses{linint}
+  \label{deriv_of_wedgeInt}
+  \lean{deriv_of_wedgeInt}
+  \uses{WedgeInt}
   Given a continuous function $f:\mathbb C\to\mathbb C$ and $z_0\in\mathbb C$,
   \begin{equation}
-    \lim_{h\to0}\frac1h\int_{z_0\to z_0+h}f(x)\ dx=f(z_0)
-    .
+    \int_{z_0\to_W z_0+h}f(x)\ dx = f(z_0)h + o(h)
+    ,
   \end{equation}
+  for $h$ in the filter (neighborhoods of $0$).
 \end{lemma}
 
 \begin{proof}
+  \uses{wedgeInt_of_const}
   Since $f$ is continuous,
   \begin{equation}
-    \int_{z_0\to z_0+h}f(x)\ dx
+    \int_{z_0\to_W z_0+h}f(x)\ dx
     =
-    \int_{z_0\to z_0+h}f(z_0)+o(1)\ dx
+    \int_{z_0\to_W z_0+h}(f(z_0)+o(1))\ dx
     =
     hf(z_0)+o(h)
     .
   \end{equation}
 \end{proof}
 
-To prove Lemma \ref{diffOfIntegrals}, we use a version of Cauchy's theorem on triangles, which we prove here.
-
-\begin{theorem}
-  \label{cauchyOnTriangles}
-  \uses{linint}
-  Given $a,b,c\in\mathbb C$, and a function $f$ that is holomorphic on the triangle formed by $a,b,c$,
-  \begin{equation}
-    \int_{a\to b} f(x)\ dx
-    +
-    \int_{b\to c} f(x)\ dx
-    +
-    \int_{c\to a} f(x)\ dx
-    =0
-    .
-  \end{equation}
-\end{theorem}
-
-\begin{proof}
-  \uses{cauchyOnTriangle_base}
-  We translate $a$ and $b$ to the real line, and use Lemma \ref{cauchyOnTriangle_base}.
-\end{proof}
-
 \begin{lemma}
-  \label{cauchyOnTriangle_base}
-  \uses{linint}
-  Given $a,b\in\mathbb R$, $c\in\mathbb C$, and a function $f$ that is holomorphic on the triangle formed by $a,b,c$,
-  \begin{equation}
-    \int_{a\to b} f(x)\ dx
-    +
-    \int_{b\to c} f(x)\ dx
-    +
-    \int_{c\to a} f(x)\ dx
-    =0
-    .
-  \end{equation}
+  \label{wedgeInt_of_const}
+  \lean{wedgeInt_of_const}
+  \uses{WedgeInt}
+  The wedge integral of a constant is the difference.
+\begin{equation}
+  \int_{z_1\to_W z_2} c\ dx
+  =
+  c(z_2-z_1)
+  .
+\end{equation}
 \end{lemma}
-
-\begin{proof}
-  \uses{cauchyOnRightTriangle}
-  Let $d:=\mathcal Re(c)$.
-  Consider the triangles $(d,b,c)$ and $(d,a,c)$.
-  We have
-  \begin{equation}
-    \int_{a\to b} f(x)\ dx
-    +
-    \int_{b\to c} f(x)\ dx
-    +
-    \int_{b\to a} f(x)\ dx
-    =
-    \int_{a\to d} f(x)\ dx
-    +
-    \int_{d\to c} f(x)\ dx
-    +
-    \int_{c\to a} f(x)\ dx
-    +
-    \int_{d\to b} f(x)\ dx
-    +
-    \int_{b\to c} f(x)\ dx
-    +
-    \int_{c\to d} f(x)\ dx
-  \end{equation}
-  and we compute each groups of three using Lemma \ref{cauchyOnRightTriangle}.
-\end{proof}
-
-\begin{lemma}
-  \label{cauchyOnRightTriangle}
-  \uses{linint}
-  Given $a,b\in\mathbb R$ and $z\in\mathbb C$, and a function $f$ that is holomorphic on the triangle formed by $z,z+a,z+ib$,
-  \begin{equation}
-    \int_{z\to z+a} f(x)\ dx
-    +
-    \int_{z+a\to z+ib} f(x)\ dx
-    +
-    \int_{z+ib\to z} f(x)\ dx
-    =0
-    .
-  \end{equation}
-\end{lemma}
-
-\begin{proof}
-  \uses{cauchyOnRightTriangle_origin}
-  We shift the points by $z$ and use Lemma \ref{cauchyOnRightTriangle_origin}.
-\end{proof}
-
-\begin{lemma}
-  \label{cauchyOnRightTriangle_origin}
-  \uses{linint}
-  Given $a,b\in\mathbb R$, and a function $f$ that is holomorphic on the triangle formed by $0,a,ib$,
-  \begin{equation}
-    \int_{0\to a} f(x)\ dx
-    +
-    \int_{a\to ib} f(x)\ dx
-    +
-    \int_{ib\to 0} f(x)\ dx
-    =0
-    .
-  \end{equation}
-\end{lemma}
-
-\begin{proof}
-  \uses{cauchyRiemann}
-  Let $u:=\mathcal Re(f)$ and $v:=\mathcal Im(f)$.
-  We have
-  \begin{equation}
-    \int_{0\to a} f(x)\ dx
-    +
-    \int_{a\to ib} f(x)\ dx
-    +
-    \int_{ib\to 0} f(x)\ dx
-    =
-    \int_0^a f(x)\ dx
-    -\int_0^b if(iy)\ dy
-    +
-    \int_0^b f(a+y(i-a/b))(i-a/b)\ dy
-    .
-  \end{equation}
-  Furthermore,
-  \begin{equation}
-    \int_0^b f(a+y(i-a/b))\ dy
-    -\int_0^b f(iy)\ dy
-    =
-    \int_0^b\int_0^{a-ya/b}\ \partial_x f(x+iy)dxdy
-  \end{equation}
-  so
-  \begin{equation}
-    \int_0^a f(x)\ dx
-    -\int_0^b if(iy)\ dy
-    +
-    \int_0^b f(a+y(i-a/b))(i-a/b)\ dy
-    =
-    i\int_0^b\int_0^{a-ya/b}\ \partial_x f(x+iy)dxdx
-    -
-    \frac ab
-    \int_0^b f(a+y(i-a/b))\ dy
-    +
-    \int_0^a f(x)\ dx
-    .
-  \end{equation}
-  Now, changing variables to $x=a-ya/b$,
-  \begin{equation}
-    \frac ab
-    \int_0^b f(a+y(i-a/b))\ dy
-    =
-    \int_0^a f(ib+x(1-ib/a))\ dx
-  \end{equation}
-  and
-  \begin{equation}
-    \int_0^a f(ib+x(1-ib/a))\ dx
-    -
-    \int_0^a f(x)\ dx
-    =
-    \int_0^a\int_0^{b-xb/a)}\partial_yf(x+iy)\ dydx
-    .
-  \end{equation}
-  All in all,
-  \begin{equation}
-    \int_{0\to a} f(x)\ dx
-    +
-    \int_{a\to ib} f(x)\ dx
-    +
-    \int_{ib\to 0} f(x)\ dx
-    =
-    i\int_0^b\int_0^{a-ya/b}\ \partial_x f(x+iy)dxdy
-    -
-    \int_0^a\int_0^{b-xb/a)}\partial_yf(x+iy)\ dydx
-    .
-  \end{equation}
-  That is,
-  \begin{equation}
-    \int_{0\to a} f(x)\ dx
-    +
-    \int_{a\to ib} f(x)\ dx
-    +
-    \int_{ib\to 0} f(x)\ dx
-    =
-    i\int_0^b\int_0^{a-ya/b}\ (\partial_x u-\partial_y v)dxdy
-    -
-    \int_0^a\int_0^{b-xb/a)}(\partial_yu+\partial_x v)\ dydx
-    .
-  \end{equation}
-
-  Now by Theorem \ref{cauchyRiemann},
-  \begin{equation}
-    \partial_x u=\partial_y v
-    ,\quad
-    \partial_y u=-\partial_x v
-  \end{equation}
-  so
-  \begin{equation}
-    \int_{0\to a} f(x)\ dx
-    +
-    \int_{a\to ib} f(x)\ dx
-    +
-    \int_{ib\to 0} f(x)\ dx
-    =
-    0
-    .
-  \end{equation}
-\end{proof}
-
-\begin{theorem}
-  \label{cauchyRiemann}
-  If $f:\mathbb C\to\mathbb C$ is differentiable at $z\in\mathbb C$, then, denoting $z=x+iy$,
-  \begin{equation}
-    \partial_x\mathcal Re(f(z))=\partial_y\mathcal Im(f(z))
-    ,\quad
-    \partial_y\mathcal Re(f(z))=-\partial_x\mathcal Im(f(z))
-  \end{equation}
-\end{theorem}
-
-\begin{proof}
-  Since $f$ is differentiable, for $a\in\mathbb R$,
-  \begin{equation}
-    \lim_{a\to0}\frac{f(z+a)-f(z)}a=\frac{f(z+ia)-f(z)}{ia}
-  \end{equation}
-  that is
-  \begin{equation}
-    \partial_x f(z)=-i\partial_y f(z)
-  \end{equation}
-  from which we conclude.
-\end{proof}
-
 
 \end{document}
