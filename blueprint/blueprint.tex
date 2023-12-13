@@ -115,7 +115,7 @@ Then a wedge is the union of a horizontal line and a vertical line.
 
 \begin{definition}
   \label{WedgeInt}
-  \lean{WedgeInt}
+  \lean{WedgeInt}\leanok
   \uses{linint}
   Given $z_1,z_2\in\mathbb C$ and a function $f:\mathbb C\to\mathbb C$, the wedge integral from $z_1$ to $z_2$ is 
    $\int_{z_1\to_W\  z_2}$ is defined as the sum of two  complex integrals, one along the horizontal path from $z_1$ to $\Re(z_2)+i \Im(z_1)$, and another along a vertical path from there to $z_2$,
@@ -134,7 +134,7 @@ In the proof of Theorem \ref{hasPrimitives_of_disc}, we use the following lemmas
 
 \begin{lemma}
   \label{diff_of_wedges}
-  \lean{diff_of_wedges}
+  \lean{diff_of_wedges}\leanok
   \uses{WedgeInt}
   Given an open disc $U$ with center $z_0$, $z\in U$, and small enough $h\in \mathbb C$, and a function $f$ that is holomorphic on $U$
   \begin{equation}
