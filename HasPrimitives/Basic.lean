@@ -7,33 +7,25 @@ import Mathlib.MeasureTheory.Integral.IntervalIntegral
 
 import Mathlib.Tactic.LibrarySearch
 
+open Complex Topology
+
 set_option autoImplicit false
 
 -- From V. Beffara https://github.com/vbeffara/RMT4
 def hasPrimitives (U : Set ℂ) : Prop :=
   ∀ f : ℂ → ℂ, DifferentiableOn ℂ f U → ∃ g : ℂ → ℂ, DifferentiableOn ℂ g U ∧ Set.EqOn (deriv g) f U
 
--- From V. Beffara https://github.com/vbeffara/RMT4
--- integral along a curve
-noncomputable def curvint (t₁ t₂ : ℝ) (f : ℂ → ℂ) (γ : ℝ → ℂ) : ℂ :=
-  ∫ t in t₁..t₂, deriv γ t • f (γ t)
+/-- The wedge integral from z to w of a function f -/
+noncomputable def WedgeInt (z w : ℂ) (f : ℂ → ℂ) : ℂ :=
+  (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) + I • (∫ y : ℝ in z.im..w.im, f (re w + y * I))
 
--- A useful function: goes from z₁ to z₂ with a speed that vanishes at the endpoints
--- Having a vanishing speed at the endpoints allows paths that are differentiable by parts to be
---  parametrized in a differentiable way
-noncomputable def straightSeg (t₁ t₂ : ℝ ) (z₁ z₂ : ℂ) : ℝ → ℂ :=
-  fun t => z₁ * (1 - Real.cos (t * Real.pi / (t₂ - t₁))) + z₂ * Real.cos (t * Real.pi / (t₂ - t₁))
-
--- straight line integral between two complex points
-noncomputable def linint (z₁ z₂ : ℂ) (f : ℂ → ℂ) : ℂ :=
-  curvint 0 1 f (straightSeg 0 1 z₁ z₂)
-
-lemma diffOfIntegrals (U: Set ℂ) (hU: Convex ℝ U)
-    (z₀ z₁ z₂ : ℂ) (hz₀: z₀ ∈ U) (hz₁: z₁ ∈ U) (hz₂: z₂ ∈ U)
-    (f : ℂ → ℂ)
-    (hf : DifferentiableOn ℂ f U) :
-    linint z₀ z₁ f - linint z₀ z₂ f = linint z₂ z₁ f := by
-  sorry
+/-- diff of wedges -/
+lemma diff_of_wedges {c : ℂ} {r : ℝ} (h0 : 0 < r) (z : ℂ)
+    {f : ℂ → ℂ}
+    (hf : DifferentiableOn ℂ f (Metric.ball c r)) :
+    ∀ᶠ h in 𝓝 0,
+      WedgeInt c (z+h) f - WedgeInt c z f = WedgeInt z (z+h) f := by
+    sorry
 
 lemma derivOfLinint (z₀ : ℂ) (f: ℂ → ℂ) (hf: Continuous f) (l: Filter ℂ):
     Asymptotics.IsLittleO l (fun h ↦ ((linint z₀ (z₀+h) f) - h*(f z₀))) (fun h ↦ h) := by
@@ -72,7 +64,7 @@ theorem hasPrimitivesOfConvex (U: Set ℂ) (hU: Convex ℝ U) : hasPrimitives U 
 
         exact Subtype.mem z₀
       sorry
-  
+
 
 -- main theorem: holomorphic functions on simply connected open sets have primitives
 theorem hasPrimitivesOfSimplyConnected (U : Set ℂ) (hSc : SimplyConnectedSpace U) (hO : IsOpen U) :
