@@ -19,13 +19,35 @@ def hasPrimitives (U : Set ℂ) : Prop :=
 noncomputable def WedgeInt (z w : ℂ) (f : ℂ → ℂ) : ℂ :=
   (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) + I • (∫ y : ℝ in z.im..w.im, f (re w + y * I))
 
+--example (x y z : ℝ ) : x • y  - x •  z = x • (y - z) := by exact (smul_sub x y z).symm
+
 /-- diff of wedges -/
-lemma diff_of_wedges {c : ℂ} {r : ℝ} (h0 : 0 < r) (z : ℂ)
+lemma diff_of_wedges {c : ℂ} {r : ℝ} (h0 : 0 < r) {z : ℂ} (hz : z ∈ Metric.ball c r)
     {f : ℂ → ℂ}
     (hf : DifferentiableOn ℂ f (Metric.ball c r)) :
     ∀ᶠ h in 𝓝 0,
       WedgeInt c (z+h) f - WedgeInt c z f = WedgeInt z (z+h) f := by
-    sorry
+  simp only [Metric.mem_ball] at hz
+  have : 0 < (r - dist z c) / 2 := by sorry
+  filter_upwards [Metric.ball_mem_nhds 0 this]
+  intro h hh
+  simp only [Metric.mem_ball, dist_zero_right, norm_eq_abs] at hh
+  simp only [WedgeInt] --, add_re, ofReal_add, add_im, smul_eq_mul]
+  rw [add_sub_add_comm]
+  have := @intervalIntegral.integral_interval_sub_left ℂ _ _ c.re (z+h).re z.re (λ x => f (x + c.im * I))  MeasureTheory.volume ?_ ?_
+  rw [this]
+
+  -- need that integral of f over rectangle is zero
+
+
+
+  have := (@smul_sub ℂ ℂ _ _ _ I (∫ (y : ℝ) in c.im..(z + h).im, f (↑(z + h).re + ↑y * I)) (∫ (y : ℝ) in c.im..z.im, f (↑z.re + ↑y * I))).symm
+  rw [this]
+  have := @intervalIntegral.integral_interval_sub_left ℂ _ _ c.im (z+h).im z.im (λ y => f (↑z.re + ↑y * I))  MeasureTheory.volume ?_ ?_
+  rw [this]
+  --apply intervalIntegral.integral_interval_sub_left
+
+#exit
 
 lemma derivOfLinint (z₀ : ℂ) (f: ℂ → ℂ) (hf: Continuous f) (l: Filter ℂ):
     Asymptotics.IsLittleO l (fun h ↦ ((linint z₀ (z₀+h) f) - h*(f z₀))) (fun h ↦ h) := by
