@@ -39,6 +39,9 @@ lemma diff_of_wedges {c : ℂ} {r : ℝ} (h0 : 0 < r) {z : ℂ} (hz : z ∈ Metr
 
   -- need that integral of f over rectangle is zero
 
+  -- STOPPED HERE 12/13/23
+
+#exit
 
 
   have := (@smul_sub ℂ ℂ _ _ _ I (∫ (y : ℝ) in c.im..(z + h).im, f (↑(z + h).re + ↑y * I)) (∫ (y : ℝ) in c.im..z.im, f (↑z.re + ↑y * I))).symm
@@ -47,7 +50,6 @@ lemma diff_of_wedges {c : ℂ} {r : ℝ} (h0 : 0 < r) {z : ℂ} (hz : z ∈ Metr
   rw [this]
   --apply intervalIntegral.integral_interval_sub_left
 
-#exit
 
 lemma derivOfLinint (z₀ : ℂ) (f: ℂ → ℂ) (hf: Continuous f) (l: Filter ℂ):
     Asymptotics.IsLittleO l (fun h ↦ ((linint z₀ (z₀+h) f) - h*(f z₀))) (fun h ↦ h) := by
