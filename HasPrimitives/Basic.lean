@@ -27,6 +27,10 @@ lemma diff_of_wedges {c : ℂ} {r : ℝ} (h0 : 0 < r) (z : ℂ)
       WedgeInt c (z+h) f - WedgeInt c z f = WedgeInt z (z+h) f := by
     sorry
 
+lemma wedgeInt_of_const (z w c : ℂ) :
+    WedgeInt z w (fun x => c) = c*(w-z) := by
+  sorry
+
 lemma derivOfLinint (z₀ : ℂ) (f: ℂ → ℂ) (hf: Continuous f) (l: Filter ℂ):
     Asymptotics.IsLittleO l (fun h ↦ ((linint z₀ (z₀+h) f) - h*(f z₀))) (fun h ↦ h) := by
   sorry
