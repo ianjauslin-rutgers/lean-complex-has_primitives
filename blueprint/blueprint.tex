@@ -75,59 +75,45 @@ We first prove the main theorem on a disc.
 
 \begin{proof}
   \uses{WedgeInt,diff_of_wedges,deriv_of_wedgeInt}
-  Consider a disc $U$ with center $z_0$.
-  Given a function $f$ that is holomorphic on $U$, we construct its primitive by integrating $f$ over a ``wedge,'' that is, a horizontal line from $z_0$ to $ \Re(z)+ i \Im(z_0)$ plus a vertical line from there to $z$: for $z\in U$,
+  Consider an open disc $U$ with center $z_0$.
+  Given a function $f$ that is holomorphic on $U$, we construct its primitive by integrating $f$ over a ``wedge,'', see Definition \ref{WedgeInt}:
   \begin{equation}
     g(z)=\int_{z_0\to_W z}\ f(z)\ dz
+    .
   \end{equation}
-  where $\int_{z_0\to_W z}$ is defined in Definition \ref{WedgeInt}.
   We are then left with proving that $g$ is differentiable and that $g'=f$.
 
   To do so, we compute
   \begin{equation}
     \frac{g(z+h)-g(z)}h
     =
-    \frac{\int_{z_0\to z+h} f(x)\ dx-\int_{z_0\to z} f(x)\ dx}h
+    \frac{\int_{z_0\to_W z+h} f(x)\ dx-\int_{z_0\to_W z} f(x)\ dx}h
   \end{equation}
   which by Lemma \ref{diff_of_wedges}, is
   \begin{equation}
     \frac{g(z+h)-g(z)}h
     =
-    \frac{\int_{z\to z+h} f(x)\ dx}h
+    \frac{\int_{z\to_W z+h} f(x)\ dx}h
     .
   \end{equation}
   We then conclude using Lemma \ref{deriv_of_wedgeInt}.
 \end{proof}
 
-The integral over the line segment from $z_1$ to $z_2$ is defined as follows.
-
-\begin{definition}
-  \label{linint}
-  \lean{linint}\leanok
-  Given $z_1,z_2\in\mathbb C$ and a function $f:\mathbb C\to\mathbb C$, the path from $z_1$ to $z_2$ is defined as
-  \begin{equation}
-    \gamma(t):=z_1(1-t)+z_2 t,
-  \end{equation}
-  and $\int_{z_1\to z_2}$ is defined as the integral of $f$ over $\gamma$.
-\end{definition}
-
-Then a wedge is the union of a horizontal line and a vertical line.
+A wedge is the union of a horizontal line and a vertical line.
 
 \begin{definition}
   \label{WedgeInt}
   \lean{WedgeInt}\leanok
   \uses{linint}
-  Given $z_1,z_2\in\mathbb C$ and a function $f:\mathbb C\to\mathbb C$, the wedge integral from $z_1$ to $z_2$ is 
-   $\int_{z_1\to_W\  z_2}$ is defined as the sum of two  complex integrals, one along the horizontal path from $z_1$ to $\Re(z_2)+i \Im(z_1)$, and another along a vertical path from there to $z_2$,
+  Given $z,w\in\mathbb C$ and a function $f:\mathbb C\to\mathbb C$, the wedge integral from $z$ to $w$ is defined as the sum of two complex integrals, one along the horizontal path from $z$ to $\Re(w)+i \Im(z)$, and another along a vertical path from there to $w$,
    \begin{equation}
-      \int_{z_1\to_W\  z_2} f(x)\ dx
+      \int_{z\to_W\  w} f(x)\ dx
       :=
-      \int_{z_1\to\Re(z_2)+i \Im(z_1)} f(x)\ dx
+      \int_{\Re(z)}^{\Re(w)} f(x+i\Im(z))\ dx
       +
-      \int_{\Re(z_2)+i \Im(z_1)\to z_2} f(x)\ dx
+      i\int_{\Im(z)}^{\Im(w)} f(\Re(w)+iy)\ dy
       .
    \end{equation}
-   If $\Re(z_2)+i \Im(z_1)$ is not in the domain of $f$, then the wedge is defined to be zero.
 \end{definition}
 
 In the proof of Theorem \ref{hasPrimitives_of_disc}, we use the following lemmas.
@@ -136,11 +122,12 @@ In the proof of Theorem \ref{hasPrimitives_of_disc}, we use the following lemmas
   \label{diff_of_wedges}
   \lean{diff_of_wedges}\leanok
   \uses{WedgeInt}
-  Given an open disc $U$ with center $z_0$, $z\in U$, and small enough $h\in \mathbb C$, and a function $f$ that is holomorphic on $U$
+  Given $c\in\mathbb C$, a radius $r>0$, we define $U$ be the disc centered at $c$ of radius $r$.
+  For $z\in U$, small enough $h\in \mathbb C$, and a function $f$ that is holomorphic on $U$
   \begin{equation}
-    \int_{z_0\to_W (z+h)} f(x)\ dx
+    \int_{c\to_W (z+h)} f(x)\ dx
     -
-    \int_{z_0\to_W z} f(x)\ dx
+    \int_{c\to_W z} f(x)\ dx
     =
     \int_{z\to_W (z+h)} f(x)\ dx
     .
@@ -148,7 +135,87 @@ In the proof of Theorem \ref{hasPrimitives_of_disc}, we use the following lemmas
 \end{lemma}
 
 \begin{proof}
-  The proof is by adding and subtracting segments to make rectangles, and using that integrals over rectangles vanish.
+  Let $R$ be the rectangle whose diagonally opposed corners are at $a:=\Re(z)+i\Im(c)$ and $b:=\Re(z+h)+i\Im(z)$.
+  We have
+  \begin{equation}
+    \int_R f(x)\ dx
+    =
+    \int_{a\to_W b} f(x)\ dx
+    +
+    \int_{\Re(z+h)}^{\Re(z)} f(x+i\Im(z))\ dx
+    +
+    i\int_{\Im(z)}^{\Im(c)} f(\Re(z)+iy)\ dy
+    .
+  \end{equation}
+  Now, since
+  \begin{equation}
+    \int_{c\to_W (z+h)} f(x)\ dx
+    =
+    \int_{a\to_W b} f(x)\ dx
+    +
+    \int_{\Re(c)}^{\Re(z)} f(x+i\Im(c))\ dx
+    +
+    i\int_{\Im(z)}^{\Im(z+h)} f(\Re(z+h)+iy)\ dy
+  \end{equation}
+  we have
+  \begin{equation}
+    \int_{c\to_W (z+h)} f(x)\ dx
+    =
+    \int_R f(x)\ dx
+    -
+    \int_{\Re(z+h)}^{\Re(z)} f(x+i\Im(z))\ dx
+    -
+    i\int_{\Im(z)}^{\Im(c)} f(\Re(z)+iy)\ dy
+    +
+    \int_{\Re(c)}^{\Re(z)} f(x+i\Im(c))\ dx
+    +
+    i\int_{\Im(z)}^{\Im(z+h)} f(\Re(z+h)+iy)\ dy
+    .
+  \end{equation}
+  Furthermore
+  \begin{equation}
+    \int_{c\to_W z)} f(x)\ dx
+    =
+    \int_{\Re(c)}^{\Re(z)} f(x+i\Im(c))\ dx
+    +
+    i\int_{\Im(c)}^{\Im(z)} f(\Re(z)+iy)\ dy
+    .
+  \end{equation}
+  Therefore,
+  \begin{equation}
+    \int_{c\to_W (z+h)} f(x)\ dx
+    -
+    \int_{c\to_W z} f(x)\ dx
+    =
+    \int_R f(x)\ dx
+    -
+    \int_{\Re(z+h)}^{\Re(z)} f(x+i\Im(z))\ dx
+    +
+    i\int_{\Im(z)}^{\Im(z+h)} f(\Re(z+h)+iy)\ dy
+  \end{equation}
+  so
+  \begin{equation}
+    \int_{c\to_W (z+h)} f(x)\ dx
+    -
+    \int_{c\to_W z} f(x)\ dx
+    =
+    \int_R f(x)\ dx
+    +\int_{z\to_W z+h} f(x)\ dx
+    .
+  \end{equation}
+  Now,
+  \begin{equation}
+    |a-c|=|\Re(z-c)|\le |z-c|< r
+  \end{equation}
+  and, provided $|h|<r-|z-c|$,
+  \begin{equation}
+    |b-c|=|z-c+\Re(h)|\le |z-c|+|h|< r
+  \end{equation}
+  \begin{equation}
+    |\Re(z+h)+i\Im(c)-c|=|\Re(z-c)+\Re(h)|< r
+  \end{equation}
+  Therefore, $R\subset U$.
+  We conclude the proof using the Cauchy Integral theorem on $R$, and the fact that $f$ is holomorphic on $U$ and therefore on the interior of $R$.
 \end{proof}
 
 \begin{lemma}
@@ -180,13 +247,26 @@ In the proof of Theorem \ref{hasPrimitives_of_disc}, we use the following lemmas
   \label{wedgeInt_of_const}
   \lean{wedgeInt_of_const}
   \uses{WedgeInt}
-  The wedge integral of a constant is the difference.
-\begin{equation}
-  \int_{z_1\to_W z_2} c\ dx
-  =
-  c(z_2-z_1)
-  .
-\end{equation}
+  For $z,w,c\in\mathbb C$,
+  \begin{equation}
+    \int_{z\to_W w} c\ dx
+    =
+    c(w-z)
+    .
+  \end{equation}
 \end{lemma}
+
+\begin{proof}
+  By Definition \ref{WedgeInt},
+  \begin{equation}
+    \int_{z\to_W w} c\ dx
+    =
+    \int_{\Re(z)}^{\Re(w)} c\ dx
+    +
+    i\int_{\Im(z)}^{\Im(w)} c\ dy
+    =c(w-z)
+    .
+  \end{equation}
+\end{proof}
 
 \end{document}
