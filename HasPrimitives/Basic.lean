@@ -83,24 +83,16 @@ lemma diff_of_wedges {c : ℂ} {r : ℝ} (h0 : 0 < r) {z : ℂ} (hz : z ∈ Metr
   ring
 
 
-#exit
-
 
 
 lemma wedgeInt_of_const (z w c : ℂ) :
     WedgeInt z w (fun x => c) = c*(w-z) := by
-  dsimp [WedgeInt]
-  simp only [intervalIntegral.integral_const c]
-  have : w-z=w.re+I*w.im-z.re-I*z.im := by
-    conv =>
-      lhs
-      rw [(Complex.re_add_im w).symm]
-      rw [(Complex.re_add_im z).symm]
-    ring
-  rw [this]
-
-  simp [smul_eq_mul]
-  ring
+  simp only [WedgeInt, intervalIntegral.integral_const, real_smul, ofReal_sub, smul_eq_mul]
+  ext <;>
+  simp only [add_re, mul_re, sub_re, ofReal_re, sub_im, ofReal_im, sub_self, zero_mul,
+sub_zero, I_re, I_im, mul_im, add_zero, one_mul, zero_sub, add_im,
+zero_add]
+   <;> ring
 
 
 lemma deriv_of_wedgeInt {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: ContinuousOn f U)
@@ -134,8 +126,8 @@ lemma deriv_of_wedgeInt {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: Conti
 
 
 
-    
-    
+
+
 
 -- trivial case: empty set
 theorem hasPrimitivesOfEmpty : hasPrimitives ∅ := by
