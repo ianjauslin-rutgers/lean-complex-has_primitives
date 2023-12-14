@@ -4,6 +4,7 @@ import Mathlib.Analysis.Complex.Basic
 import Mathlib.Analysis.Convex.Basic
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 import Mathlib.MeasureTheory.Integral.IntervalIntegral
+import Mathlib.Analysis.Complex.CauchyIntegral
 
 import Mathlib.Tactic.LibrarySearch
 
@@ -19,7 +20,7 @@ def hasPrimitives (U : Set ℂ) : Prop :=
 noncomputable def WedgeInt (z w : ℂ) (f : ℂ → ℂ) : ℂ :=
   (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) + I • (∫ y : ℝ in z.im..w.im, f (re w + y * I))
 
---example (x y z : ℝ ) : x • y  - x •  z = x • (y - z) := by exact (smul_sub x y z).symm
+
 
 /-- diff of wedges -/
 lemma diff_of_wedges {c : ℂ} {r : ℝ} (h0 : 0 < r) {z : ℂ} (hz : z ∈ Metric.ball c r)
@@ -33,22 +34,57 @@ lemma diff_of_wedges {c : ℂ} {r : ℝ} (h0 : 0 < r) {z : ℂ} (hz : z ∈ Metr
   intro h hh
   simp only [Metric.mem_ball, dist_zero_right, norm_eq_abs] at hh
   simp only [WedgeInt] --, add_re, ofReal_add, add_im, smul_eq_mul]
-  rw [add_sub_add_comm]
-  have := @intervalIntegral.integral_interval_sub_left ℂ _ _ c.re (z+h).re z.re (λ x => f (x + c.im * I))  MeasureTheory.volume ?_ ?_
-  rw [this]
+  set intI := ∫ x : ℝ in c.re..(z + h).re, f (x + c.im * I)
+  set intII := I • ∫ y : ℝ in c.im..(z + h).im, f ((z+h).re + y * I)
+  set intIII := ∫ x : ℝ in c.re..z.re, f (x + c.im * I)
+  set intIV := I • ∫ y : ℝ in c.im..z.im, f (z.re + y * I)
+  set intV := ∫ x : ℝ in z.re..(z + h).re, f (x + z.im * I)
+  set intVI := I • ∫ y : ℝ in z.im..(z + h).im, f ((z+h).re + y * I)
+  let intVII := ∫ x : ℝ in z.re..(z+h).re, f (x + c.im * I)
+  let intVIII := I • ∫ y : ℝ in c.im..z.im, f ((z+h).re + y * I)
+  have intIdecomp : intI = intIII + intVII  := by
+    rw [intervalIntegral.integral_add_adjacent_intervals]
+    · apply ContinuousOn.intervalIntegrable
+      convert @ContinuousOn.comp ℝ ℂ ℂ _ _ _ f (fun x => (x : ℂ) + c.im * I) (Set.uIcc c.re z.re)
+        ((fun (x : ℝ) => (x : ℂ) + c.im * I) '' (Set.uIcc c.re z.re)) ?_ ?_ ?_
+      · convert @DifferentiableOn.continuousOn ℂ _ ℂ _ _ ℂ _ _ f _ _
+        apply DifferentiableOn.mono hf
+        sorry -- image of line is a subset of the disc
+      · apply Continuous.continuousOn
+        exact Continuous.comp (continuous_add_right _) continuous_ofReal
+      · exact Set.mapsTo_image _ _
+    sorry--integrable
 
-  -- need that integral of f over rectangle is zero
+  have intIIdecomp : intII = intVIII + intVI := by
+    rw [← smul_add, intervalIntegral.integral_add_adjacent_intervals]
+    sorry--integrable
+    sorry--integrable
 
-  -- STOPPED HERE 12/13/23
+  have rectZero : intVIII = - intVII + intV + intIV := by
+    rw [← sub_eq_zero]
+    have : intVII - intV + intVIII - intIV = 0 := by
+      convert integral_boundary_rect_eq_zero_of_differentiable_on_off_countable f (z.re + c.im * I) ((z+h).re + z.im * I) ∅ ?_ ?_ ?_ using 4
+      · simp
+      · congr! 1 <;> simp
+      · congr! 1 <;> simp
+      · simp
+      · simp
+      · simp
+      · simp
+      · sorry -- ContinuousOn
+      · intro x hx
+        sorry -- differentiable
+    rw [← this]
+    ring
+
+  rw [intIdecomp]
+  rw [intIIdecomp]
+  rw [rectZero]
+  ring
+
 
 #exit
 
-
-  have := (@smul_sub ℂ ℂ _ _ _ I (∫ (y : ℝ) in c.im..(z + h).im, f (↑(z + h).re + ↑y * I)) (∫ (y : ℝ) in c.im..z.im, f (↑z.re + ↑y * I))).symm
-  rw [this]
-  have := @intervalIntegral.integral_interval_sub_left ℂ _ _ c.im (z+h).im z.im (λ y => f (↑z.re + ↑y * I))  MeasureTheory.volume ?_ ?_
-  rw [this]
-  --apply intervalIntegral.integral_interval_sub_left
 
 
 lemma derivOfLinint (z₀ : ℂ) (f: ℂ → ℂ) (hf: Continuous f) (l: Filter ℂ):
