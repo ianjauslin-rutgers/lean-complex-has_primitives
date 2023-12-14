@@ -6,4 +6,4 @@ blueprint/web
 *.fls
 *.fdb_latexmk
 *.log
-
+*.swp
