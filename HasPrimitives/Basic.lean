@@ -44,9 +44,38 @@ lemma wedgeInt_of_const (z w c : ℂ) :
 
 
 lemma deriv_of_wedgeInt {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: ContinuousOn f U)
-    {z₀ : ℂ} (hz₀ : z₀∈U):
+    {z₀ : ℂ} (hz₀ : z₀∈U) :
     Asymptotics.IsLittleO (𝓝 0) (fun h ↦ ((WedgeInt z₀ (z₀+h) f) - h*(f z₀))) (fun h ↦ h) := by
+  have : Asymptotics.IsLittleO (𝓝 0) (fun h ↦ f (z₀+h) - f z₀) (fun h ↦ (1:ℂ)) := by
+    have := ContinuousOn.continuousAt hf (IsOpen.mem_nhds hU hz₀)
+    have f_tendsto := ContinuousAt.tendsto this
+    simp only [Asymptotics.isLittleO_one_iff]
+    rw [tendsto_sub_nhds_zero_iff]
+
+    -- shift the origin of the filter
+    -- this can probably be done better
+    let g := fun h ↦ z₀+h
+    have g_tendsto : Filter.Tendsto g (𝓝 0) (𝓝 z₀) := by
+      dsimp [g]
+      rw [tendsto_sub_nhds_zero_iff.symm]
+      simp only [add_sub_cancel']
+      rw [Filter.tendsto_def]
+      intros s hs
+      simp only [Set.preimage_id']
+      exact hs
+    have := Filter.Tendsto.comp f_tendsto g_tendsto
+    rw [Function.comp] at this
+    exact this
+
+  dsimp [WedgeInt]
+
   sorry
+
+
+
+
+    
+    
 
 -- trivial case: empty set
 theorem hasPrimitivesOfEmpty : hasPrimitives ∅ := by
