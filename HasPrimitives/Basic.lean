@@ -43,8 +43,8 @@ lemma wedgeInt_of_const (z w c : ℂ) :
   ring
 
 
-lemma derivOfLinint (z₀ : ℂ) (f: ℂ → ℂ) (hf: Continuous f) (l: Filter ℂ):
-    Asymptotics.IsLittleO l (fun h ↦ ((linint z₀ (z₀+h) f) - h*(f z₀))) (fun h ↦ h) := by
+lemma deriv_of_wedgeInt (z₀ : ℂ) (f: ℂ → ℂ) (hf: Continuous f):
+    Asymptotics.IsLittleO (𝓝 0) (fun h ↦ ((WedgeInt z₀ (z₀+h) f) - h*(f z₀))) (fun h ↦ h) := by
   sorry
 
 -- trivial case: empty set
