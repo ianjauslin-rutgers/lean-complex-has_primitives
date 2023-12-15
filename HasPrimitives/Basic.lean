@@ -132,7 +132,7 @@ lemma deriv_of_wedgeInt {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: Conti
     filter_upwards [Metric.ball_mem_nhds 0 hε,this]
     intro hre hre_eps hre_diff
 
-    simp only [ofReal_zero, add_zero, re_add_im, sub_self, mul_zero, sub_zero, norm_eq_abs, Real.norm_eq_abs] at hre_diff 
+    simp only [ofReal_zero, add_zero, re_add_im, sub_self, mul_zero, sub_zero, norm_eq_abs, Real.norm_eq_abs] at hre_diff
 
     -- write f as f-f(z₀)+f(z₀)
     have : ∫ x in z₀.re..z₀.re + hre, f (x + z₀.im * I) = ∫ x in z₀.re..z₀.re + hre, ((f (x + z₀.im * I)-f z₀) + f z₀) := by ring_nf
@@ -161,11 +161,11 @@ lemma deriv_of_wedgeInt {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: Conti
 
 
     -- apply fundamental theorem of calculus to horizontal part
-    have continuous_v : ContinuousAt (fun y:ℝ => f (z₀.re + hre + (z₀.im + y)*I)-f z₀) 0 := by
+    have continuous_v : ContinuousAt (fun y:ℝ => f (z₀.re + hre + (z₀.im + y)*I)-f (z₀+hre)) 0 := by
       sorry
-    have integrable_v : IntervalIntegrable (fun y:ℝ => f (z₀.re + hre + (z₀.im + y)*I)-f z₀) Real.measureSpace.volume 0 0 := by
+    have integrable_v : IntervalIntegrable (fun y:ℝ => f (z₀.re + hre + (z₀.im + y)*I)-f (z₀+hre)) Real.measureSpace.volume 0 0 := by
       sorry
-    have stronglymeasureable_v : StronglyMeasurableAtFilter (fun y:ℝ => f (z₀.re + hre + (z₀.im+y)*I)-f z₀) (nhds 0) := by
+    have stronglymeasureable_v : StronglyMeasurableAtFilter (fun y:ℝ => f (z₀.re + hre + (z₀.im+y)*I)-f (z₀+hre)) (nhds 0) := by
       sorry
 
     have diff_v := intervalIntegral.integral_hasDerivAt_right integrable_v stronglymeasureable_v continuous_v
@@ -175,23 +175,31 @@ lemma deriv_of_wedgeInt {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: Conti
     have : 0 < c/2 := half_pos hc
     have := diff_v this
 
-    have vertical : ∀ᶠ (him : ℝ) in 𝓝 0, ‖(∫ y in z₀.im..z₀.im + him, f (z₀.re + hre + y * I)) + him * f z₀‖ ≤ c/2 * ‖him‖ := by
+    have vertical : ∀ᶠ (him : ℝ) in 𝓝 0, ‖(∫ y in z₀.im..z₀.im + him, f (z₀.re + hre + y * I)) - him * f (z₀+hre)‖ ≤ c/2 * ‖him‖ := by
       -- condition on h.im
       rw [Filter.eventually_iff] at this
       filter_upwards [Metric.ball_mem_nhds 0 hε,this]
       intro him him_eps him_diff
 
       simp only [ofReal_zero, add_zero, norm_eq_abs, Real.norm_eq_abs] at him_diff
+      have : f (z₀ + hre) = f (z₀.re + hre + z₀.im*I) := by
+        sorry
+      rw [this] at him_diff
+      simp only [sub_self, mul_zero, sub_zero] at him_diff
 
       -- write f as f-f(z₀)+f(z₀)
-      have : ∫ y in z₀.im..z₀.im + him, f (z₀.re + hre + y * I) = ∫ y in z₀.im..z₀.im + him, (f (z₀.re + hre + y * I) -f z₀) + f z₀ := by ring_nf
-      have : ∫ y in z₀.im..z₀.im + him, f (z₀.re + hre + y * I) = (∫ y in z₀.im..z₀.im + him, f (z₀.re + hre + y * I) -f z₀) + him * f z₀ := by
+      have : ∫ y in z₀.im..z₀.im + him, f (z₀.re + hre + y * I) = ∫ y in z₀.im..z₀.im + him, (f (z₀.re + hre + y * I) -f (z₀+hre)) + f (z₀+hre) := by ring_nf
+      have : ∫ y in z₀.im..z₀.im + him, f (z₀.re + hre + y * I) = (∫ y in z₀.im..z₀.im + him, f (z₀.re + hre + y * I) -f (z₀+hre)) + him * f (z₀+hre) := by
         sorry
       rw [this]
 
-      simp only [norm_eq_abs, Real.norm_eq_abs, ge_iff_le]
+      simp only [add_sub_cancel, norm_eq_abs, Real.norm_eq_abs, ge_iff_le]
 
-      sorry
+      have : Complex.abs (∫ (x : ℝ) in (0:ℝ)..him, f (↑z₀.re + ↑hre + ↑(z₀.im + x) * I) - f (↑z₀.re + ↑hre + ↑z₀.im * I)) ≤ c / 2 * |him| := by
+        sorry
+      rw [intervalIntegral.integral_comp_add_left (fun x:ℝ => f (z₀.re + hre + x * I) - f (z₀.re + hre + z₀.im * I)) z₀.im] at this
+      simp only [add_zero] at this
+      convert this
 
     -- condition on h.im
     rw [Filter.eventually_iff] at vertical
