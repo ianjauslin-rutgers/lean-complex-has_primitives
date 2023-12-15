@@ -34,21 +34,11 @@ theorem rectangle_in_disc {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈
 --     (hf : ContinuousOn f (Metric.ball c r)) (hf₂ : ∀ z w, z ∈ Metric.ball c r → w ∈ Metric.ball c r → (z.re + w.im * I) ∈ Metric.ball c r → (w.re + z.im * I) ∈ Metric.ball c r →
 --     ∫ x : ℝ in z.re..w.re, f (x + z.im * I) - ∫ x : ℝ in z.im..w.im, f (w.re + y * I) = 0) :
 --      + I • ∫ y : ℝ in z.im..w.im, f (w.re + y * I) -
+theorem Complex.mem_ball_iff_normSq (c z : ℂ) (r : ℝ) (hr : 0 ≤ r) :
+    z ∈ Metric.ball c r ↔ normSq (z-c) < r^2 := by
+  rw [mem_ball_iff_norm, normSq_eq_abs, norm_eq_abs, sq_lt_sq, abs_abs, abs_eq_self.mpr hr]
 
-theorem Complex.mem_ball_iff_normSq {c z : ℂ} {r : ℝ} (hr : 0 < r) : z ∈  Metric.ball c r ↔ normSq (z-c) < r^2 := by
-  constructor
-  · intro hz
-    rw [mem_ball_iff_norm] at hz
-    rw [Complex.normSq_eq_abs]
-    rw [norm_eq_abs] at hz
-    rw [sq_lt_sq]
-    convert hz <;>  simp only [abs_abs, abs_eq_self]
-    exact le_of_lt hr
-  · intro hz
-    refine mem_ball_iff_norm.mpr ?_
-    rw [Complex.normSq_eq_abs] at hz
-    rw [norm_eq_abs]
-    nlinarith
+
 
 /-- diff of wedges -/
 lemma diff_of_wedges {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metric.ball c r)
