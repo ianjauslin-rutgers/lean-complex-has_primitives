@@ -94,10 +94,67 @@ sub_zero, I_re, I_im, mul_im, add_zero, one_mul, zero_sub, add_im,
 zero_add]
    <;> ring
 
+example (hyp: ∀ᶠ h in (𝓝 0), h=2) : ∀ᶠ h in (𝓝 0), h^2=4 := by
+  filter_upwards [hyp]
+  intro a hw
+  rw [hw]
+  ring
+
+
 
 lemma deriv_of_linint {f: ℝ → ℂ} {a: ℝ} {U : Set ℝ} (hU: IsOpen U) (hUa: a∈ U) (hf: ContinuousOn f U) :
     Asymptotics.IsLittleO (𝓝 0) (fun h ↦ ((∫ x in a..a+h, f x) - h*(f a))) (fun h ↦ h) := by
   sorry
+
+lemma deriv_of_horv_0 {f:ℝ →ℂ}
+    (hfC: ContinuousAt f 0) (hfM: StronglyMeasurableAtFilter f (nhds 0))
+    (c : ℝ) (hc: 0<c):
+    ∀ᶠ (h : ℝ) in 𝓝 0, ‖(∫ (x : ℝ) in (0:ℝ)..h, f x) - h * f 0‖ ≤ c/3 * ‖h‖ := by
+
+  have integrable : IntervalIntegrable (fun x:ℝ => f x-f 0) Real.measureSpace.volume 0 0 := by
+    simp
+  have continuous : ContinuousAt (fun x => f x - f 0) 0 := by
+    sorry
+  have measurable : StronglyMeasurableAtFilter (fun x => f x - f 0) (nhds 0) := by
+    sorry
+
+  have diff := intervalIntegral.integral_hasDerivAt_right integrable measurable continuous
+  rw [hasDerivAt_iff_isLittleO] at diff
+  simp only [intervalIntegral.integral_same, sub_zero, re_add_im, sub_self, real_smul, ofReal_sub, mul_zero] at diff
+  rw [Asymptotics.isLittleO_iff] at diff
+  have : 0 < c/3 := div_pos hc zero_lt_three
+  have := diff this
+
+  -- condition on h
+  rw [Filter.eventually_iff] at this
+  filter_upwards [this]
+  intro h h_diff
+
+  simp only [ofReal_zero, add_zero, re_add_im, sub_self, mul_zero, sub_zero, norm_eq_abs, Real.norm_eq_abs] at h_diff
+
+  -- write f as f-f(z₀)+f(z₀)
+  have : ∫ x in (0:ℝ)..h, f x = ∫ x in (0:ℝ)..h, ((f x-f 0) + f 0) := by ring_nf
+  have : ∫ x in (0:ℝ)..h, f x = (∫ x in (0:ℝ)..h, (f x-f 0)) + h*f 0 := by
+    sorry
+  rw [this]
+  simp only [add_sub_cancel, norm_eq_abs, Real.norm_eq_abs, ge_iff_le]
+  exact h_diff
+
+
+lemma deriv_of_horv (a:ℝ) {f:ℝ →ℂ}
+    (hfC: ContinuousAt f a) (hfM: StronglyMeasurableAtFilter f (nhds a))
+    (c : ℝ) (hc: 0<c):
+    ∀ᶠ (h : ℝ) in 𝓝 0, ‖(∫ (x : ℝ) in a..a+h, f x) - h * f a‖ ≤ c/3 * ‖h‖ := by
+  have continuous : ContinuousAt (fun x => f (a+x)) 0 := by
+    sorry
+  have measurable : StronglyMeasurableAtFilter (fun x => f (a+x)) (nhds 0) := by
+    sorry
+  have := deriv_of_horv_0 continuous measurable c hc
+  --have : Complex.abs (∫ (x : ℝ) in (0:ℝ)..h, f (a+x) - f a) ≤ c/3 * |h| := by
+  --  sorry
+  simp_rw [intervalIntegral.integral_comp_add_left (fun x:ℝ => f x) a] at this
+  simp only [add_zero, sub_self, mul_zero, sub_zero] at this
+  exact this
 
 lemma deriv_of_wedgeInt {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: ContinuousOn f U)
     {z₀ : ℂ} (hz₀ : z₀∈U) :
@@ -111,41 +168,6 @@ lemma deriv_of_wedgeInt {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: Conti
   -- get ball around z₀
   obtain ⟨ε,hε,B⟩ := (Metric.isOpen_iff.mp hU) z₀ hz₀
 
-  -- apply fundamental theorem of calculus to horizontal part
-  have continuous_h : ContinuousAt (fun x:ℝ => f (z₀.re + x + z₀.im*I)-f z₀) 0 := by
-    sorry
-  have integrable_h : IntervalIntegrable (fun x:ℝ => f (z₀.re +x + z₀.im*I)-f z₀) Real.measureSpace.volume 0 0 := by
-    sorry
-  have stronglymeasureable_h : StronglyMeasurableAtFilter (fun x:ℝ => f (z₀.re + x + z₀.im*I)-f z₀) (nhds 0) := by
-    sorry
-
-  have diff_h := intervalIntegral.integral_hasDerivAt_right integrable_h stronglymeasureable_h continuous_h
-  rw [hasDerivAt_iff_isLittleO] at diff_h
-  simp only [intervalIntegral.integral_same, sub_zero, re_add_im, sub_self, real_smul, ofReal_sub, mul_zero] at diff_h
-  rw [Asymptotics.isLittleO_iff] at diff_h
-  have : 0 < c/3 := div_pos hc zero_lt_three
-  have := diff_h this
-
-  have horizontal : ∀ᶠ (hre : ℝ) in 𝓝 0, ‖(∫ (x : ℝ) in z₀.re..z₀.re + hre, f (↑x + ↑z₀.im * I)) - hre * (f z₀)‖ ≤ c/3 * ‖hre‖ := by
-    -- condition on h.re
-    rw [Filter.eventually_iff] at this
-    filter_upwards [Metric.ball_mem_nhds 0 hε,this]
-    intro hre hre_eps hre_diff
-
-    simp only [ofReal_zero, add_zero, re_add_im, sub_self, mul_zero, sub_zero, norm_eq_abs, Real.norm_eq_abs] at hre_diff
-
-    -- write f as f-f(z₀)+f(z₀)
-    have : ∫ x in z₀.re..z₀.re + hre, f (x + z₀.im * I) = ∫ x in z₀.re..z₀.re + hre, ((f (x + z₀.im * I)-f z₀) + f z₀) := by ring_nf
-    have : ∫ x in z₀.re..z₀.re + hre, f (x + z₀.im * I) = (∫ x in z₀.re..z₀.re + hre, (f (x + z₀.im * I)-f z₀)) + hre*f z₀ := by
-      sorry
-    rw [this]
-    simp only [add_sub_cancel, norm_eq_abs, Real.norm_eq_abs, ge_iff_le]
-    have : Complex.abs (∫ (x : ℝ) in (0:ℝ)..hre, f (↑(z₀.re + x) + ↑z₀.im * I) - f z₀) ≤ c/3 * |hre| := by
-      sorry
-    rw [intervalIntegral.integral_comp_add_left (fun x:ℝ => f (x + z₀.im * I) - f z₀) z₀.re] at this
-    simp only [add_zero] at this
-    exact this
-
   -- restate goal, splitting real and imaginary parts of h
   have : ∀ᶠ (hre : ℝ) in 𝓝 0, ∀ᶠ(him : ℝ) in 𝓝 0,
   ‖((∫ (x : ℝ) in z₀.re..z₀.re + hre, f (↑x + ↑z₀.im * I)) +
@@ -153,53 +175,24 @@ lemma deriv_of_wedgeInt {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: Conti
         (hre+him*I) * f z₀‖ ≤
     c * ‖hre+him*I‖ := by
       
-    -- repeat for im
+    -- apply fundamental theorem of calculus to horizontal part
+    have continuous_h : ContinuousAt (fun x:ℝ => f (x + z₀.im*I)) z₀.re := by
+      sorry
+    have stronglymeasurable_h : StronglyMeasurableAtFilter (fun x:ℝ => f (x + z₀.im*I)) (nhds z₀.re) := by
+      sorry
+    have horizontal := deriv_of_horv z₀.re  continuous_h stronglymeasurable_h c hc
+
     -- condition on h.re
     rw [Filter.eventually_iff] at horizontal
     filter_upwards [Metric.ball_mem_nhds 0 hε,horizontal]
     intro hre hre_eps hre_diff
 
-
-    -- apply fundamental theorem of calculus to horizontal part
-    have continuous_v : ContinuousAt (fun y:ℝ => f (z₀.re + hre + (z₀.im + y)*I)-f (z₀+hre)) 0 := by
+    -- apply fundamental theorem of calculus to vertical part
+    have continuous_v : ContinuousAt (fun y:ℝ => f (z₀.re + hre + y*I)) z₀.im := by
       sorry
-    have integrable_v : IntervalIntegrable (fun y:ℝ => f (z₀.re + hre + (z₀.im + y)*I)-f (z₀+hre)) Real.measureSpace.volume 0 0 := by
+    have stronglymeasurable_v : StronglyMeasurableAtFilter (fun y:ℝ => f (z₀.re + hre + y*I)) (nhds z₀.im) := by
       sorry
-    have stronglymeasureable_v : StronglyMeasurableAtFilter (fun y:ℝ => f (z₀.re + hre + (z₀.im+y)*I)-f (z₀+hre)) (nhds 0) := by
-      sorry
-
-    have diff_v := intervalIntegral.integral_hasDerivAt_right integrable_v stronglymeasureable_v continuous_v
-    rw [hasDerivAt_iff_isLittleO] at diff_v
-    simp only [intervalIntegral.integral_same, sub_zero, re_add_im, sub_self, real_smul, ofReal_sub, mul_zero] at diff_v
-    rw [Asymptotics.isLittleO_iff] at diff_v
-    have : 0 < c/3 := div_pos hc zero_lt_three
-    have := diff_v this
-
-    have vertical : ∀ᶠ (him : ℝ) in 𝓝 0, ‖(∫ y in z₀.im..z₀.im + him, f (z₀.re + hre + y * I)) - him * f (z₀+hre)‖ ≤ c/3 * ‖him‖ := by
-      -- condition on h.im
-      rw [Filter.eventually_iff] at this
-      filter_upwards [Metric.ball_mem_nhds 0 hε,this]
-      intro him him_eps him_diff
-
-      simp only [ofReal_zero, add_zero, norm_eq_abs, Real.norm_eq_abs] at him_diff
-      have : f (z₀ + hre) = f (z₀.re + hre + z₀.im*I) := by
-        sorry
-      rw [this] at him_diff
-      simp only [sub_self, mul_zero, sub_zero] at him_diff
-
-      -- write f as f-f(z₀)+f(z₀)
-      have : ∫ y in z₀.im..z₀.im + him, f (z₀.re + hre + y * I) = ∫ y in z₀.im..z₀.im + him, (f (z₀.re + hre + y * I) -f (z₀+hre)) + f (z₀+hre) := by ring_nf
-      have : ∫ y in z₀.im..z₀.im + him, f (z₀.re + hre + y * I) = (∫ y in z₀.im..z₀.im + him, f (z₀.re + hre + y * I) -f (z₀+hre)) + him * f (z₀+hre) := by
-        sorry
-      rw [this]
-
-      simp only [add_sub_cancel, norm_eq_abs, Real.norm_eq_abs, ge_iff_le]
-
-      have : Complex.abs (∫ (x : ℝ) in (0:ℝ)..him, f (↑z₀.re + ↑hre + ↑(z₀.im + x) * I) - f (↑z₀.re + ↑hre + ↑z₀.im * I)) ≤ c/3 * |him| := by
-        sorry
-      rw [intervalIntegral.integral_comp_add_left (fun x:ℝ => f (z₀.re + hre + x * I) - f (z₀.re + hre + z₀.im * I)) z₀.im] at this
-      simp only [add_zero] at this
-      convert this
+    have vertical := deriv_of_horv z₀.im  continuous_v stronglymeasurable_v c hc
 
     -- condition on h.im
     rw [Filter.eventually_iff] at vertical
