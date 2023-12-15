@@ -20,27 +20,47 @@ def hasPrimitives (U : Set ℂ) : Prop :=
 noncomputable def WedgeInt (z w : ℂ) (f : ℂ → ℂ) : ℂ :=
   (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) + I • (∫ y : ℝ in z.im..w.im, f (re w + y * I))
 
+/-- For small h, the rectangle stays inside the disc -/
+theorem rectangle_in_disc {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metric.ball c r) :
+    ∀ᶠ h in 𝓝 0, z + h.re ∈ Metric.ball c r ∧ z + h.im * I ∈ Metric.ball c r ∧ z + h ∈ Metric.ball c r := by
+  have : 0 < (r - dist z c) / 2 := by sorry
+  filter_upwards [Metric.ball_mem_nhds 0 this]
+  sorry
 
-/-- Moreira's theorem -/
-theorem moreiras_theorem {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
-    (hf : ContinuousOn f (Metric.ball c r)) (hf₂ : ∀ z w, z ∈ Metric.ball c r → w ∈ Metric.ball c r → (z.re + w.im * I) ∈ Metric.ball c r → (w.re + z.im * I) ∈ Metric.ball c r →
-    ∫ x : ℝ in z.re..w.re, f (x + z.im * I) - ∫ x : ℝ in z.im..w.im, f (w.re + y * I) = 0) :
-     + I • ∫ y : ℝ in z.im..w.im, f (w.re + y * I) -
 
 
-#exit
+-- /-- Moreira's theorem -/
+-- theorem moreiras_theorem {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
+--     (hf : ContinuousOn f (Metric.ball c r)) (hf₂ : ∀ z w, z ∈ Metric.ball c r → w ∈ Metric.ball c r → (z.re + w.im * I) ∈ Metric.ball c r → (w.re + z.im * I) ∈ Metric.ball c r →
+--     ∫ x : ℝ in z.re..w.re, f (x + z.im * I) - ∫ x : ℝ in z.im..w.im, f (w.re + y * I) = 0) :
+--      + I • ∫ y : ℝ in z.im..w.im, f (w.re + y * I) -
+
+theorem Complex.mem_ball_iff_normSq {c z : ℂ} {r : ℝ} (hr : 0 < r) : z ∈  Metric.ball c r ↔ normSq (z-c) < r^2 := by
+  constructor
+  · intro hz
+    rw [mem_ball_iff_norm] at hz
+    rw [Complex.normSq_eq_abs]
+    rw [norm_eq_abs] at hz
+    rw [sq_lt_sq]
+    convert hz <;>  simp only [abs_abs, abs_eq_self]
+    exact le_of_lt hr
+  · intro hz
+    refine mem_ball_iff_norm.mpr ?_
+    rw [Complex.normSq_eq_abs] at hz
+    rw [norm_eq_abs]
+    nlinarith
 
 /-- diff of wedges -/
-lemma diff_of_wedges {c : ℂ} {r : ℝ} (h0 : 0 < r) {z : ℂ} (hz : z ∈ Metric.ball c r)
+lemma diff_of_wedges {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metric.ball c r)
     {f : ℂ → ℂ}
     (hf : DifferentiableOn ℂ f (Metric.ball c r)) :
     ∀ᶠ h in 𝓝 0,
       WedgeInt c (z+h) f - WedgeInt c z f = WedgeInt z (z+h) f := by
-  simp only [Metric.mem_ball] at hz
+  --simp only [Metric.mem_ball] at hz
   have : 0 < (r - dist z c) / 2 := by sorry
   filter_upwards [Metric.ball_mem_nhds 0 this]
   intro h hh
-  simp only [Metric.mem_ball, dist_zero_right, norm_eq_abs] at hh
+--  simp only [Metric.mem_ball, dist_zero_right, norm_eq_abs] at hh
   simp only [WedgeInt] --, add_re, ofReal_add, add_im, smul_eq_mul]
   set intI := ∫ x : ℝ in c.re..(z + h).re, f (x + c.im * I)
   set intII := I • ∫ y : ℝ in c.im..(z + h).im, f ((z+h).re + y * I)
@@ -56,8 +76,24 @@ lemma diff_of_wedges {c : ℂ} {r : ℝ} (h0 : 0 < r) {z : ℂ} (hz : z ∈ Metr
       convert @ContinuousOn.comp ℝ ℂ ℂ _ _ _ f (fun x => (x : ℂ) + c.im * I) (Set.uIcc c.re z.re)
         ((fun (x : ℝ) => (x : ℂ) + c.im * I) '' (Set.uIcc c.re z.re)) ?_ ?_ ?_
       · convert @DifferentiableOn.continuousOn ℂ _ ℂ _ _ ℂ _ _ f _ _
-        apply DifferentiableOn.mono hf
-        sorry -- image of line is a subset of the disc
+        apply hf.mono
+        intro x hx
+        simp only [ge_iff_le, Set.mem_image] at hx
+        obtain ⟨x₁, hx₁, hx₁'⟩ := hx
+        rw [Set.mem_uIcc] at hx₁
+        rw [Complex.mem_ball_iff_normSq hr] at hz
+        rw [Complex.mem_ball_iff_normSq hr]
+        apply lt_of_le_of_lt ?_ hz
+        rw [← hx₁']
+        rw [Complex.normSq_apply]
+        rw [Complex.normSq_apply]
+        simp only [sub_re, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+          sub_self, add_zero, sub_im, add_im, mul_im, zero_add]
+        cases hx₁ <;>calc
+        _ ≤ (z.re - c.re) * (z.re - c.re) := by nlinarith
+        _ ≤ _ := by
+          simp only [le_add_iff_nonneg_right, gt_iff_lt, sub_pos]
+          exact mul_self_nonneg (z.im - c.im)
       · apply Continuous.continuousOn
         exact Continuous.comp (continuous_add_right _) continuous_ofReal
       · exact Set.mapsTo_image _ _
@@ -182,7 +218,7 @@ lemma deriv_of_wedgeInt {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: Conti
           I * ∫ (y : ℝ) in z₀.im..z₀.im + him, f (↑z₀.re + ↑hre + ↑y * I)) -
         (hre+him*I) * f z₀‖ ≤
     c * ‖hre+him*I‖ := by
-      
+
     -- apply fundamental theorem of calculus to horizontal part
     have continuous_h : ContinuousAt (fun x:ℝ => f (x + z₀.im*I)) z₀.re := by
       sorry
