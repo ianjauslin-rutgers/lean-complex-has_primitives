@@ -43,7 +43,7 @@ This project aims to formalize a proof that holomorphic functions on simply conn
 
 We define the notion of a primitive as follows.
 
-\begin{definition}
+\begin{definition}[Has Primitives]
   \label{HasPrimitives}
   \lean{HasPrimitives}\leanok
   Given a set $U\subset\mathbb C$, for any differentiable $f:U\to\mathbb C$, there exists a differentiable $g:U\to\mathbb C$ such that $g'=f$ on $U$.
@@ -51,7 +51,7 @@ We define the notion of a primitive as follows.
 
 The main result is
 
-\begin{theorem}
+\begin{theorem}[Primitives on a Simply Connected Set]
   \label{hasPrimitives_of_simplyConnected}
   \lean{hasPrimitives_of_simplyConnected}\leanok
   \uses{HasPrimitives}
@@ -66,7 +66,7 @@ The main result is
 \section{Primitives on a Disc}
 We first prove the main theorem on a disc.
 
-\begin{theorem}
+\begin{theorem}[Primitives on a Disc]
   \label{hasPrimitives_of_disc}
   \lean{hasPrimitives_of_disc}\leanok
   \uses{HasPrimitives}
@@ -74,9 +74,26 @@ We first prove the main theorem on a disc.
 \end{theorem}
 
 \begin{proof}
+  \uses{moreras_theorem}
+  Consider an open disc $U$ with center $z_0$.
+  If a function $f$ that is holomorphic on $U$, then it is continuous on $U$ and the integral
+  over any axis-parallel rectangle with corners in $U$ is $0$. Therefore we can apply Morera's Theorem \ref{moreras_theorem} to conclude that $f$ has a primitive on $U$.
+\end{proof}
+
+
+\begin{theorem}[Morera's Theorem]
+  \label{moreras_theorem}
+  \lean{moreras_theorem}
+  \uses{HasPrimitives}
+  If a function is continuous on a disc, and the 
+  integral over any axis-parallel rectangle with corners in the disc is $0$, then the function 
+  has a primitive in the disc.
+\end{theorem}
+
+\begin{proof}
   \uses{WedgeInt,diff_of_wedges,deriv_of_wedgeInt}
   Consider an open disc $U$ with center $z_0$.
-  Given a function $f$ that is holomorphic on $U$, we construct its primitive by integrating $f$ over a ``wedge,'', see Definition \ref{WedgeInt}:
+  Given a function $f$ that is continuous on $U$, we construct its primitive by integrating $f$ over a ``wedge,'', see Definition \ref{WedgeInt}:
   \begin{equation}
     g(z)=\int_{z_0\to_W z}\ f(z)\ dz
     .
@@ -99,9 +116,10 @@ We first prove the main theorem on a disc.
   We then conclude using Lemma \ref{deriv_of_wedgeInt}.
 \end{proof}
 
+
 A wedge is the union of a horizontal line and a vertical line.
 
-\begin{definition}
+\begin{definition}[Wedge Integral]
   \label{WedgeInt}
   \lean{WedgeInt}\leanok
   \uses{linint}
@@ -118,7 +136,7 @@ A wedge is the union of a horizontal line and a vertical line.
 
 In the proof of Theorem \ref{hasPrimitives_of_disc}, we use the following lemmas.
 
-\begin{lemma}
+\begin{lemma}[Difference of Wedge Integrals]
   \label{diff_of_wedges}
   \lean{diff_of_wedges}\leanok
   \uses{WedgeInt}
@@ -218,7 +236,7 @@ In the proof of Theorem \ref{hasPrimitives_of_disc}, we use the following lemmas
   We conclude the proof using the Cauchy Integral theorem on $R$, and the fact that $f$ is holomorphic on $U$ and therefore on the interior of $R$.
 \end{proof}
 
-\begin{lemma}
+\begin{lemma}[Derivative of Wedge Integral]
   \label{deriv_of_wedgeInt}
   \lean{deriv_of_wedgeInt}\leanok
   \uses{WedgeInt}
@@ -243,7 +261,7 @@ In the proof of Theorem \ref{hasPrimitives_of_disc}, we use the following lemmas
   \end{equation}
 \end{proof}
 
-\begin{lemma}
+\begin{lemma}[Wedge Integral of a Constant]
   \label{wedgeInt_of_const}
   \lean{wedgeInt_of_const}\leanok
   \uses{WedgeInt}
