@@ -123,10 +123,10 @@ lemma deriv_of_wedgeInt {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: Conti
   rw [hasDerivAt_iff_isLittleO] at diff_h
   simp only [intervalIntegral.integral_same, sub_zero, re_add_im, sub_self, real_smul, ofReal_sub, mul_zero] at diff_h
   rw [Asymptotics.isLittleO_iff] at diff_h
-  have : 0 < c/2 := half_pos hc
+  have : 0 < c/3 := div_pos hc zero_lt_three
   have := diff_h this
 
-  have horizontal : ∀ᶠ (hre : ℝ) in 𝓝 0, ‖(∫ (x : ℝ) in z₀.re..z₀.re + hre, f (↑x + ↑z₀.im * I)) - hre * (f z₀)‖ ≤ c/2 * ‖hre‖ := by
+  have horizontal : ∀ᶠ (hre : ℝ) in 𝓝 0, ‖(∫ (x : ℝ) in z₀.re..z₀.re + hre, f (↑x + ↑z₀.im * I)) - hre * (f z₀)‖ ≤ c/3 * ‖hre‖ := by
     -- condition on h.re
     rw [Filter.eventually_iff] at this
     filter_upwards [Metric.ball_mem_nhds 0 hε,this]
@@ -140,7 +140,7 @@ lemma deriv_of_wedgeInt {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: Conti
       sorry
     rw [this]
     simp only [add_sub_cancel, norm_eq_abs, Real.norm_eq_abs, ge_iff_le]
-    have : Complex.abs (∫ (x : ℝ) in (0:ℝ)..hre, f (↑(z₀.re + x) + ↑z₀.im * I) - f z₀) ≤ c / 2 * |hre| := by
+    have : Complex.abs (∫ (x : ℝ) in (0:ℝ)..hre, f (↑(z₀.re + x) + ↑z₀.im * I) - f z₀) ≤ c/3 * |hre| := by
       sorry
     rw [intervalIntegral.integral_comp_add_left (fun x:ℝ => f (x + z₀.im * I) - f z₀) z₀.re] at this
     simp only [add_zero] at this
@@ -172,10 +172,10 @@ lemma deriv_of_wedgeInt {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: Conti
     rw [hasDerivAt_iff_isLittleO] at diff_v
     simp only [intervalIntegral.integral_same, sub_zero, re_add_im, sub_self, real_smul, ofReal_sub, mul_zero] at diff_v
     rw [Asymptotics.isLittleO_iff] at diff_v
-    have : 0 < c/2 := half_pos hc
+    have : 0 < c/3 := div_pos hc zero_lt_three
     have := diff_v this
 
-    have vertical : ∀ᶠ (him : ℝ) in 𝓝 0, ‖(∫ y in z₀.im..z₀.im + him, f (z₀.re + hre + y * I)) - him * f (z₀+hre)‖ ≤ c/2 * ‖him‖ := by
+    have vertical : ∀ᶠ (him : ℝ) in 𝓝 0, ‖(∫ y in z₀.im..z₀.im + him, f (z₀.re + hre + y * I)) - him * f (z₀+hre)‖ ≤ c/3 * ‖him‖ := by
       -- condition on h.im
       rw [Filter.eventually_iff] at this
       filter_upwards [Metric.ball_mem_nhds 0 hε,this]
@@ -195,7 +195,7 @@ lemma deriv_of_wedgeInt {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: Conti
 
       simp only [add_sub_cancel, norm_eq_abs, Real.norm_eq_abs, ge_iff_le]
 
-      have : Complex.abs (∫ (x : ℝ) in (0:ℝ)..him, f (↑z₀.re + ↑hre + ↑(z₀.im + x) * I) - f (↑z₀.re + ↑hre + ↑z₀.im * I)) ≤ c / 2 * |him| := by
+      have : Complex.abs (∫ (x : ℝ) in (0:ℝ)..him, f (↑z₀.re + ↑hre + ↑(z₀.im + x) * I) - f (↑z₀.re + ↑hre + ↑z₀.im * I)) ≤ c/3 * |him| := by
         sorry
       rw [intervalIntegral.integral_comp_add_left (fun x:ℝ => f (z₀.re + hre + x * I) - f (z₀.re + hre + z₀.im * I)) z₀.im] at this
       simp only [add_zero] at this
@@ -206,7 +206,21 @@ lemma deriv_of_wedgeInt {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: Conti
     filter_upwards [Metric.ball_mem_nhds 0 hε,vertical]
     intro him him_eps him_diff
 
-    sorry
+    have : ‖((∫ (x : ℝ) in z₀.re..z₀.re + hre, f (↑x + ↑z₀.im * I)) +
+        I * ∫ (y : ℝ) in z₀.im..z₀.im + him, f (↑z₀.re + ↑hre + ↑y * I)) -
+        (↑hre + ↑him * I) * f z₀‖ ≤
+        ‖(∫ (x : ℝ) in z₀.re..z₀.re + hre, f (↑x + ↑z₀.im * I)) - hre * f z₀‖ +
+        ‖(∫ (y : ℝ) in z₀.im..z₀.im + him, f (↑z₀.re + ↑hre + ↑y * I) - ↑him * f (z₀+hre))‖
+        + ‖I* (f (z₀+hre) - f z₀)‖ := by
+      -- norm_add_le
+      sorry
+
+    suffices hsp : ‖(∫ (x : ℝ) in z₀.re..z₀.re + hre, f (↑x + ↑z₀.im * I)) - hre * f z₀‖ +
+        ‖(∫ (y : ℝ) in z₀.im..z₀.im + him, f (↑z₀.re + ↑hre + ↑y * I) - ↑him * f (z₀+hre))‖
+        + ‖I* (f (z₀+hre) - f z₀)‖ ≤ c*‖hre + him*I‖
+
+    · exact le_trans this hsp
+    · sorry
 
 
 --  -- write f as f-f(z₀)+f(z₀)
