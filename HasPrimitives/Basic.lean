@@ -60,8 +60,65 @@ lemma diff_of_wedges {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metr
   set intVI := I • ∫ y : ℝ in z.im..(z + h).im, f ((z+h).re + y * I)
   let intVII := ∫ x : ℝ in z.re..(z+h).re, f (x + c.im * I)
   let intVIII := I • ∫ y : ℝ in c.im..z.im, f ((z+h).re + y * I)
+  have integrHoriz : ∀ a₁ a₂ b : ℝ, a₁ + b * I ∈ Metric.ball c r → a₂ + b * I ∈ Metric.ball c r →
+    IntervalIntegrable (fun x => f (x + b * I)) MeasureTheory.volume a₁ a₂
+  · intro a₁ a₂ b ha₁ ha₂
+    apply ContinuousOn.intervalIntegrable
+    convert @ContinuousOn.comp ℝ ℂ ℂ _ _ _ f (fun x => (x : ℂ) + b * I) (Set.uIcc a₁ a₂)
+      ((fun (x : ℝ) => (x : ℂ) + b * I) '' (Set.uIcc a₁ a₂)) ?_ ?_ ?_
+    · convert hf.continuousOn
+      sorry -- need to prove that this is a subset of the domain
+    · apply Continuous.continuousOn
+      exact Continuous.comp (continuous_add_right _) continuous_ofReal
+    · exact Set.mapsTo_image _ _
+  have integrVert : ∀ a b₁ b₂ : ℝ, a + b₁ * I ∈ Metric.ball c r → a + b₂ * I ∈ Metric.ball c r →
+    IntervalIntegrable (fun y => f (a + y * I)) MeasureTheory.volume b₁ b₂
+  · intro a b₁ b₂ ha hb
+    apply ContinuousOn.intervalIntegrable
+    convert @ContinuousOn.comp ℝ ℂ ℂ _ _ _ f (fun y => (a : ℂ) + y * I) (Set.uIcc b₁ b₂)
+      ((fun (y : ℝ) => (a : ℂ) + y * I) '' (Set.uIcc b₁ b₂)) ?_ ?_ ?_
+    · convert hf.continuousOn
+      sorry -- need to prove that this is a subset of the domain
+    · apply Continuous.continuousOn
+      refine Continuous.comp (continuous_add_left _) ?_
+      refine Continuous.comp (continuous_mul_right _) continuous_ofReal
+    · exact Set.mapsTo_image _ _
   have intIdecomp : intI = intIII + intVII  := by
-    rw [intervalIntegral.integral_add_adjacent_intervals]
+    rw [intervalIntegral.integral_add_adjacent_intervals] <;> apply integrHoriz
+    · simp only [re_add_im, Metric.mem_ball, dist_self, hr]
+    · sorry -- point in ball
+    · sorry -- point in ball
+    · sorry -- point in ball
+  have intIIdecomp : intII = intVIII + intVI := by
+    rw [← smul_add, intervalIntegral.integral_add_adjacent_intervals] <;> apply integrVert
+    · sorry
+    · sorry
+    · sorry
+    · sorry
+  have rectZero : intVIII = - intVII + intV + intIV := by
+    rw [← sub_eq_zero]
+    have : intVII - intV + intVIII - intIV = 0 := by
+      convert integral_boundary_rect_eq_zero_of_differentiable_on_off_countable f (z.re + c.im * I) ((z+h).re + z.im * I) ∅ ?_ ?_ ?_ using 4
+      · simp
+      · congr! 1 <;> simp
+      · congr! 1 <;> simp
+      · simp
+      · simp
+      · simp
+      · simp
+      · sorry -- ContinuousOn
+      · intro x hx
+        sorry -- differentiable
+    rw [← this]
+    ring
+
+  rw [intIdecomp]
+  rw [intIIdecomp]
+  rw [rectZero]
+  ring
+
+
+#exit
     · apply ContinuousOn.intervalIntegrable
       convert @ContinuousOn.comp ℝ ℂ ℂ _ _ _ f (fun x => (x : ℂ) + c.im * I) (Set.uIcc c.re z.re)
         ((fun (x : ℝ) => (x : ℂ) + c.im * I) '' (Set.uIcc c.re z.re)) ?_ ?_ ?_
@@ -89,32 +146,7 @@ lemma diff_of_wedges {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metr
       · exact Set.mapsTo_image _ _
     sorry--integrable
 
-  have intIIdecomp : intII = intVIII + intVI := by
-    rw [← smul_add, intervalIntegral.integral_add_adjacent_intervals]
-    sorry--integrable
-    sorry--integrable
 
-  have rectZero : intVIII = - intVII + intV + intIV := by
-    rw [← sub_eq_zero]
-    have : intVII - intV + intVIII - intIV = 0 := by
-      convert integral_boundary_rect_eq_zero_of_differentiable_on_off_countable f (z.re + c.im * I) ((z+h).re + z.im * I) ∅ ?_ ?_ ?_ using 4
-      · simp
-      · congr! 1 <;> simp
-      · congr! 1 <;> simp
-      · simp
-      · simp
-      · simp
-      · simp
-      · sorry -- ContinuousOn
-      · intro x hx
-        sorry -- differentiable
-    rw [← this]
-    ring
-
-  rw [intIdecomp]
-  rw [intIIdecomp]
-  rw [rectZero]
-  ring
 
 
 
