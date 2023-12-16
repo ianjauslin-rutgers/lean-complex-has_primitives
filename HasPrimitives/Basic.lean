@@ -6,11 +6,13 @@ import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 import Mathlib.MeasureTheory.Integral.IntervalIntegral
 import Mathlib.Analysis.Complex.CauchyIntegral
 
-import Mathlib.Tactic.LibrarySearch
+-- Is this needed??
+-- import Mathlib.Tactic.LibrarySearch
 
 open Complex Topology
 
-set_option autoImplicit false
+-- Is this needed??
+--set_option autoImplicit false
 
 -- From V. Beffara https://github.com/vbeffara/RMT4
 def HasPrimitives (U : Set ℂ) : Prop :=
@@ -25,6 +27,7 @@ def VanishesOnRectanglesInDisc (c : ℂ) (r : ℝ) (f : ℂ → ℂ) : Prop :=
     (w.re + z.im * I) ∈ Metric.ball c r →
     (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) - (∫ x : ℝ in z.re..w.re, f (x + w.im * I))
      + I • (∫ y : ℝ in z.im..w.im, f (w.re + y * I)) - I • (∫ y : ℝ in z.im..w.im, f (z.re + y * I)) = 0
+
 
 -- /-- For small h, the rectangle stays inside the disc -/
 -- theorem rectangle_in_disc {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metric.ball c r) :
@@ -426,10 +429,15 @@ theorem moreiras_theorem {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
     ∃ g : ℂ → ℂ, DifferentiableOn ℂ g (Metric.ball c r) ∧ Set.EqOn (deriv g) f (Metric.ball c r) := by
   sorry
 
+theorem vanishesOnRectangles_of_holomorphic {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
+    (hf : DifferentiableOn ℂ f (Metric.ball c r)) :
+    VanishesOnRectanglesInDisc c r f := by
+  sorry
 
 -- To prove the main theorem, we first prove it on a disc
-theorem hasPrimitives_of_disc (c : ℂ) {r : ℝ} (hr : 0 < r) : HasPrimitives (Metric.ball c r) := by
-  sorry
+theorem hasPrimitives_of_disc (c : ℂ) {r : ℝ} (hr : 0 < r) : HasPrimitives (Metric.ball c r) :=
+    fun _ hf ↦ moreiras_theorem hr hf.continuousOn (vanishesOnRectangles_of_holomorphic hr hf)
+
   -- by_cases hne : U = ∅
   -- · convert HasPrimitivesOfEmpty
 
