@@ -80,18 +80,44 @@ lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} (hr : 0 < r)
     convert @ContinuousOn.comp ℝ ℂ ℂ _ _ _ f (fun x => (x : ℂ) + b * I) (Set.uIcc a₁ a₂)
       ((fun (x : ℝ) => (x : ℂ) + b * I) '' (Set.uIcc a₁ a₂)) ?_ ?_ ?_
     · apply f_cont.mono
-      sorry -- need to prove that this is a subset of the domain
+      convert rectangle_inside_disc c hr (a₁ + b * I) (a₂ + b * I) ha₁ ha₂ ?_ ?_ using 1
+      · simp only [ge_iff_le, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+        sub_self, add_zero, add_im, mul_im, zero_add, le_refl, Set.uIcc_of_le, not_true_eq_false,
+        gt_iff_lt, lt_self_iff_false, Set.Icc_self]
+        ext x
+        constructor
+        · intro hx
+          sorry  -- need to prove that this is a subset of the domain
+        · intro hx
+          sorry  -- need to prove that this is a subset of the domain
+      · simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+        add_zero, add_im, mul_im, zero_add, ha₁]
+      · simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+        add_zero, add_im, mul_im, zero_add, ha₂]
     · apply Continuous.continuousOn
       exact Continuous.comp (continuous_add_right _) continuous_ofReal
     · exact Set.mapsTo_image _ _
   have integrVert : ∀ a b₁ b₂ : ℝ, a + b₁ * I ∈ Metric.ball c r → a + b₂ * I ∈ Metric.ball c r →
     IntervalIntegrable (fun y => f (a + y * I)) MeasureTheory.volume b₁ b₂
-  · intro a b₁ b₂ ha hb
+  · intro a b₁ b₂ hb₁ hb₂
     apply ContinuousOn.intervalIntegrable
     convert @ContinuousOn.comp ℝ ℂ ℂ _ _ _ f (fun y => (a : ℂ) + y * I) (Set.uIcc b₁ b₂)
       ((fun (y : ℝ) => (a : ℂ) + y * I) '' (Set.uIcc b₁ b₂)) ?_ ?_ ?_
     · apply f_cont.mono
-      sorry -- need to prove that this is a subset of the domain
+      convert rectangle_inside_disc c hr (a + b₁ * I) (a + b₂ * I) hb₁ hb₂ ?_ ?_ using 1
+      · simp only [ge_iff_le, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+        sub_self, add_zero, add_im, mul_im, zero_add, le_refl, Set.uIcc_of_le, not_true_eq_false,
+        gt_iff_lt, lt_self_iff_false, Set.Icc_self]
+        ext x
+        constructor
+        · intro hx
+          sorry  -- need to prove that this is a subset of the domain
+        · intro hx
+          sorry  -- need to prove that this is a subset of the domain
+      · simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+        add_zero, add_im, mul_im, zero_add, hb₂]
+      · simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+        add_zero, add_im, mul_im, zero_add, hb₁]
     · apply Continuous.continuousOn
       refine Continuous.comp (continuous_add_left _) ?_
       refine Continuous.comp (continuous_mul_right _) continuous_ofReal
