@@ -13,6 +13,17 @@ open Complex Topology
 
 -- Is this needed??
 --set_option autoImplicit false
+set_option autoImplicit true
+
+open scoped Interval
+
+
+theorem rectangle_inside_disc (c : ℂ) {r : ℝ} (hr : 0 < r) (z w : ℂ) (hz : z ∈ Metric.ball c r)
+    (hw : w ∈ Metric.ball c r)  (hzw : (z.re + w.im * I) ∈ Metric.ball c r)
+    (hwz : (w.re + z.im * I) ∈ Metric.ball c r) :
+    ([[z.re, w.re]] ×ℂ [[z.im, w.im]]) ⊆ Metric.ball c r := by
+  intro x hx
+  sorry
 
 -- From V. Beffara https://github.com/vbeffara/RMT4
 def HasPrimitives (U : Set ℂ) : Prop :=
