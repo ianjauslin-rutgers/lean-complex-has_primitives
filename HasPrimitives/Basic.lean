@@ -39,7 +39,6 @@ theorem Complex.mem_ball_iff_normSq (c z : ℂ) (r : ℝ) (hr : 0 ≤ r) :
   rw [mem_ball_iff_norm, normSq_eq_abs, norm_eq_abs, sq_lt_sq, abs_abs, abs_eq_self.mpr hr]
 
 
-
 /-- diff of wedges -/
 lemma diff_of_wedges {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metric.ball c r)
     {f : ℂ → ℂ}
@@ -172,17 +171,22 @@ lemma deriv_of_linint {f: ℝ → ℂ} {a: ℝ} {U : Set ℝ} (hU: IsOpen U) (hU
     Asymptotics.IsLittleO (𝓝 0) (fun h ↦ ((∫ x in a..a+h, f x) - h*(f a))) (fun h ↦ h) := by
   sorry
 
-lemma deriv_of_horv_0 {f:ℝ →ℂ}
-    (hfC: ContinuousAt f 0) (hfM: StronglyMeasurableAtFilter f (nhds 0))
-    (c : ℝ) (hc: 0<c):
+lemma deriv_of_horv_0 {f:ℝ →ℂ} {U: Set ℝ} {hU0: 0 ∈ U} {hU: IsOpen U}
+    (hfC: ContinuousOn f U) (hfM: StronglyMeasurableAtFilter f (nhds 0))
+    {c : ℝ} (hc: 0<c):
     ∀ᶠ (h : ℝ) in 𝓝 0, ‖(∫ (x : ℝ) in (0:ℝ)..h, f x) - h * f 0‖ ≤ c/3 * ‖h‖ := by
 
   have integrable : IntervalIntegrable (fun x:ℝ => f x-f 0) Real.measureSpace.volume 0 0 := by
     simp
+  have continuous_on : ContinuousOn (fun x => f x - f 0) U := by
+    apply ContinuousOn.sub hfC (continuousOn_const)
   have continuous : ContinuousAt (fun x => f x - f 0) 0 := by
-    sorry
+    apply ContinuousOn.continuousAt continuous_on ?_
+    rw [mem_nhds_iff]
+    use U
   have measurable : StronglyMeasurableAtFilter (fun x => f x - f 0) (nhds 0) := by
-    sorry
+    apply ContinuousOn.stronglyMeasurableAtFilter hU continuous_on 0
+    exact hU0
 
   have diff := intervalIntegral.integral_hasDerivAt_right integrable measurable continuous
   rw [hasDerivAt_iff_isLittleO] at diff
@@ -199,28 +203,42 @@ lemma deriv_of_horv_0 {f:ℝ →ℂ}
   simp only [ofReal_zero, add_zero, re_add_im, sub_self, mul_zero, sub_zero, norm_eq_abs, Real.norm_eq_abs] at h_diff
 
   -- write f as f-f(z₀)+f(z₀)
-  have : ∫ x in (0:ℝ)..h, f x = ∫ x in (0:ℝ)..h, ((f x-f 0) + f 0) := by ring_nf
-  have : ∫ x in (0:ℝ)..h, f x = (∫ x in (0:ℝ)..h, (f x-f 0)) + h*f 0 := by
-    sorry
-  rw [this]
-  simp only [add_sub_cancel, norm_eq_abs, Real.norm_eq_abs, ge_iff_le]
-  exact h_diff
+  calc
+    _ = ‖(∫ x in (0:ℝ)..h, ((f x-f 0) + f 0)) - h*f 0‖ := by ring_nf
+    _ = ‖(∫ x in (0:ℝ)..h, (f x-f 0)) + (∫ x in (0:ℝ)..h, f 0) - h* f 0‖ := ?_
+    _ = ‖(∫ x in (0:ℝ)..h, (f x-f 0)) + h•f 0 - h* f 0‖ := by
+      rw [intervalIntegral.integral_const (f 0)]
+      simp
+    _ = ‖(∫ x in (0:ℝ)..h, (f x-f 0))‖ := by simp
+    _ = Complex.abs ((∫ (x : ℝ) in (0:ℝ)..h, f x - f 0)) := by simp
+    _ ≤ _ := h_diff
+  congr
+
+  rw [intervalIntegral.integral_add ?_ ?_]
+  · sorry
+  · sorry
 
 
-lemma deriv_of_horv (a:ℝ) {f:ℝ →ℂ}
-    (hfC: ContinuousAt f a) (hfM: StronglyMeasurableAtFilter f (nhds a))
+
+lemma deriv_of_horv (a:ℝ) {f:ℝ →ℂ} {U: Set ℝ} {hUa: a ∈ U} {hU: IsOpen U}
+    (hfC: ContinuousOn f U) (hfM: StronglyMeasurableAtFilter f (nhds a))
     (c : ℝ) (hc: 0<c):
     ∀ᶠ (h : ℝ) in 𝓝 0, ‖(∫ (x : ℝ) in a..a+h, f x) - h * f a‖ ≤ c/3 * ‖h‖ := by
-  have continuous : ContinuousAt (fun x => f (a+x)) 0 := by
+  let U' := {x:ℝ | x+a ∈ U}
+  have continuous : ContinuousOn (fun x => f (a+x)) U' := by
     sorry
   have measurable : StronglyMeasurableAtFilter (fun x => f (a+x)) (nhds 0) := by
     sorry
-  have := deriv_of_horv_0 continuous measurable c hc
-  --have : Complex.abs (∫ (x : ℝ) in (0:ℝ)..h, f (a+x) - f a) ≤ c/3 * |h| := by
-  --  sorry
+  have := @deriv_of_horv_0 _ _ ?_ ?_ continuous measurable _ hc
   simp_rw [intervalIntegral.integral_comp_add_left (fun x:ℝ => f x) a] at this
   simp only [add_zero, sub_self, mul_zero, sub_zero] at this
   exact this
+
+  simp only [Set.mem_setOf_eq, zero_add]
+  exact hUa
+
+  sorry
+
 
 lemma deriv_of_wedgeInt {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: ContinuousOn f U)
     {z₀ : ℂ} (hz₀ : z₀∈U) :
@@ -242,7 +260,7 @@ lemma deriv_of_wedgeInt {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: Conti
     c * ‖hre+him*I‖ := by
 
     -- apply fundamental theorem of calculus to horizontal part
-    have continuous_h : ContinuousAt (fun x:ℝ => f (x + z₀.im*I)) z₀.re := by
+    have continuous_h : ContinuousOn (fun x:ℝ => f (x + z₀.im*I)) z₀.re := by
       sorry
     have stronglymeasurable_h : StronglyMeasurableAtFilter (fun x:ℝ => f (x + z₀.im*I)) (nhds z₀.re) := by
       sorry
