@@ -13,30 +13,32 @@ open Complex Topology
 set_option autoImplicit false
 
 -- From V. Beffara https://github.com/vbeffara/RMT4
-def hasPrimitives (U : Set ℂ) : Prop :=
+def HasPrimitives (U : Set ℂ) : Prop :=
   ∀ f : ℂ → ℂ, DifferentiableOn ℂ f U → ∃ g : ℂ → ℂ, DifferentiableOn ℂ g U ∧ Set.EqOn (deriv g) f U
 
 /-- The wedge integral from z to w of a function f -/
 noncomputable def WedgeInt (z w : ℂ) (f : ℂ → ℂ) : ℂ :=
   (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) + I • (∫ y : ℝ in z.im..w.im, f (re w + y * I))
 
-/-- For small h, the rectangle stays inside the disc -/
-theorem rectangle_in_disc {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metric.ball c r) :
-    ∀ᶠ h in 𝓝 0, z + h.re ∈ Metric.ball c r ∧ z + h.im * I ∈ Metric.ball c r ∧ z + h ∈ Metric.ball c r := by
-  have : 0 < (r - dist z c) / 2 := by sorry
-  filter_upwards [Metric.ball_mem_nhds 0 this]
-  sorry
+def VanishesOnRectanglesInDisc (c : ℂ) (r : ℝ) (f : ℂ → ℂ) : Prop :=
+    ∀ z w, z ∈ Metric.ball c r → w ∈ Metric.ball c r → (z.re + w.im * I) ∈ Metric.ball c r →
+    (w.re + z.im * I) ∈ Metric.ball c r →
+    (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) - (∫ x : ℝ in z.re..w.re, f (x + w.im * I))
+     + I • (∫ y : ℝ in z.im..w.im, f (w.re + y * I)) - I • (∫ y : ℝ in z.im..w.im, f (z.re + y * I)) = 0
+
+-- /-- For small h, the rectangle stays inside the disc -/
+-- theorem rectangle_in_disc {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metric.ball c r) :
+--     ∀ᶠ h in 𝓝 0, z + h.re ∈ Metric.ball c r ∧ z + h.im * I ∈ Metric.ball c r ∧ z + h ∈ Metric.ball c r := by
+--   have : 0 < (r - dist z c) / 2 := by sorry
+--   filter_upwards [Metric.ball_mem_nhds 0 this]
+--   sorry
+
+-- -- Needed? Maybe not?
+-- theorem Complex.mem_ball_iff_normSq (c z : ℂ) (r : ℝ) (hr : 0 ≤ r) :
+--     z ∈ Metric.ball c r ↔ normSq (z-c) < r^2 := by
+--   rw [mem_ball_iff_norm, normSq_eq_abs, norm_eq_abs, sq_lt_sq, abs_abs, abs_eq_self.mpr hr]
 
 
-
--- /-- Moreira's theorem -/
--- theorem moreiras_theorem {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
---     (hf : ContinuousOn f (Metric.ball c r)) (hf₂ : ∀ z w, z ∈ Metric.ball c r → w ∈ Metric.ball c r → (z.re + w.im * I) ∈ Metric.ball c r → (w.re + z.im * I) ∈ Metric.ball c r →
---     ∫ x : ℝ in z.re..w.re, f (x + z.im * I) - ∫ x : ℝ in z.im..w.im, f (w.re + y * I) = 0) :
---      + I • ∫ y : ℝ in z.im..w.im, f (w.re + y * I) -
-theorem Complex.mem_ball_iff_normSq (c z : ℂ) (r : ℝ) (hr : 0 ≤ r) :
-    z ∈ Metric.ball c r ↔ normSq (z-c) < r^2 := by
-  rw [mem_ball_iff_norm, normSq_eq_abs, norm_eq_abs, sq_lt_sq, abs_abs, abs_eq_self.mpr hr]
 
 
 /-- diff of wedges -/
@@ -117,33 +119,33 @@ lemma diff_of_wedges {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metr
   ring
 
 
-#exit
-    · apply ContinuousOn.intervalIntegrable
-      convert @ContinuousOn.comp ℝ ℂ ℂ _ _ _ f (fun x => (x : ℂ) + c.im * I) (Set.uIcc c.re z.re)
-        ((fun (x : ℝ) => (x : ℂ) + c.im * I) '' (Set.uIcc c.re z.re)) ?_ ?_ ?_
-      · convert @DifferentiableOn.continuousOn ℂ _ ℂ _ _ ℂ _ _ f _ _
-        apply hf.mono
-        intro x hx
-        simp only [ge_iff_le, Set.mem_image] at hx
-        obtain ⟨x₁, hx₁, hx₁'⟩ := hx
-        rw [Set.mem_uIcc] at hx₁
-        rw [Complex.mem_ball_iff_normSq hr] at hz
-        rw [Complex.mem_ball_iff_normSq hr]
-        apply lt_of_le_of_lt ?_ hz
-        rw [← hx₁']
-        rw [Complex.normSq_apply]
-        rw [Complex.normSq_apply]
-        simp only [sub_re, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
-          sub_self, add_zero, sub_im, add_im, mul_im, zero_add]
-        cases hx₁ <;>calc
-        _ ≤ (z.re - c.re) * (z.re - c.re) := by nlinarith
-        _ ≤ _ := by
-          simp only [le_add_iff_nonneg_right, gt_iff_lt, sub_pos]
-          exact mul_self_nonneg (z.im - c.im)
-      · apply Continuous.continuousOn
-        exact Continuous.comp (continuous_add_right _) continuous_ofReal
-      · exact Set.mapsTo_image _ _
-    sorry--integrable
+
+    -- · apply ContinuousOn.intervalIntegrable
+    --   convert @ContinuousOn.comp ℝ ℂ ℂ _ _ _ f (fun x => (x : ℂ) + c.im * I) (Set.uIcc c.re z.re)
+    --     ((fun (x : ℝ) => (x : ℂ) + c.im * I) '' (Set.uIcc c.re z.re)) ?_ ?_ ?_
+    --   · convert @DifferentiableOn.continuousOn ℂ _ ℂ _ _ ℂ _ _ f _ _
+    --     apply hf.mono
+    --     intro x hx
+    --     simp only [ge_iff_le, Set.mem_image] at hx
+    --     obtain ⟨x₁, hx₁, hx₁'⟩ := hx
+    --     rw [Set.mem_uIcc] at hx₁
+    --     rw [Complex.mem_ball_iff_normSq hr] at hz
+    --     rw [Complex.mem_ball_iff_normSq hr]
+    --     apply lt_of_le_of_lt ?_ hz
+    --     rw [← hx₁']
+    --     rw [Complex.normSq_apply]
+    --     rw [Complex.normSq_apply]
+    --     simp only [sub_re, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+    --       sub_self, add_zero, sub_im, add_im, mul_im, zero_add]
+    --     cases hx₁ <;>calc
+    --     _ ≤ (z.re - c.re) * (z.re - c.re) := by nlinarith
+    --     _ ≤ _ := by
+    --       simp only [le_add_iff_nonneg_right, gt_iff_lt, sub_pos]
+    --       exact mul_self_nonneg (z.im - c.im)
+    --   · apply Continuous.continuousOn
+    --     exact Continuous.comp (continuous_add_right _) continuous_ofReal
+    --   · exact Set.mapsTo_image _ _
+    -- sorry--integrable
 
 
 
@@ -405,48 +407,56 @@ lemma deriv_of_wedgeInt {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: Conti
 
 
 
--- trivial case: empty set
-theorem hasPrimitivesOfEmpty : hasPrimitives ∅ := by
-  dsimp [hasPrimitives]
-  simp only [Set.eqOn_empty, and_true]
-  dsimp [DifferentiableOn]
-  dsimp [DifferentiableWithinAt]
-  dsimp [HasFDerivWithinAt]
-  dsimp [HasFDerivAtFilter]
-  simp only [Set.mem_empty_iff_false, nhdsWithin_empty, map_sub, IsEmpty.forall_iff, forall_const, exists_const,
-  forall_true_left]
+-- -- trivial case: empty set
+-- theorem HasPrimitivesOfEmpty : HasPrimitives ∅ := by
+--   dsimp [HasPrimitives]
+--   simp only [Set.eqOn_empty, and_true]
+--   dsimp [DifferentiableOn]
+--   dsimp [DifferentiableWithinAt]
+--   dsimp [HasFDerivWithinAt]
+--   dsimp [HasFDerivAtFilter]
+--   simp only [Set.mem_empty_iff_false, nhdsWithin_empty, map_sub, IsEmpty.forall_iff, forall_const, exists_const,
+--   forall_true_left]
+
+
+/-- Moreira's theorem -/
+theorem moreiras_theorem {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
+    (hf : ContinuousOn f (Metric.ball c r))
+    (hf₂ : VanishesOnRectanglesInDisc c r f) :
+    ∃ g : ℂ → ℂ, DifferentiableOn ℂ g (Metric.ball c r) ∧ Set.EqOn (deriv g) f (Metric.ball c r) := by
+  sorry
 
 
 -- To prove the main theorem, we first prove it on a disc
--- not sure what happens if U is empty
-theorem hasPrimitivesOfConvex (U: Set ℂ) (hU: Convex ℝ U) : hasPrimitives U := by
-  by_cases hne : U = ∅
-  · convert hasPrimitivesOfEmpty
+theorem hasPrimitives_of_disc (c : ℂ) {r : ℝ} (hr : 0 < r) : HasPrimitives (Metric.ball c r) := by
+  sorry
+  -- by_cases hne : U = ∅
+  -- · convert HasPrimitivesOfEmpty
 
-  · intros f hf_diff
-    -- get z₀
-    have : Nonempty U := Set.nonempty_iff_ne_empty'.mpr hne
-    obtain ⟨z₀,hz₀⟩ := Set.exists_mem_of_nonempty U
-    use fun z ↦ linint z₀ z f
-    constructor
-    · sorry
+  -- · intros f hf_diff
+  --   -- get z₀
+  --   have : Nonempty U := Set.nonempty_iff_ne_empty'.mpr hne
+  --   obtain ⟨z₀,hz₀⟩ := Set.exists_mem_of_nonempty U
+  --   use fun z ↦ linint z₀ z f
+  --   constructor
+  --   · sorry
 
-    · intro z  hz
-      have : ∀ h : ℂ, z+h∈ U → linint z₀ (z+h) f - linint z₀ z f = linint z (z+h) f:= by
-        intros h hinU
-        refine diffOfIntegrals U hU z₀ (z+h) z ?_ hinU hz f hf_diff
+  --   · intro z  hz
+  --     have : ∀ h : ℂ, z+h∈ U → linint z₀ (z+h) f - linint z₀ z f = linint z (z+h) f:= by
+  --       intros h hinU
+  --       refine diffOfIntegrals U hU z₀ (z+h) z ?_ hinU hz f hf_diff
 
-        exact Subtype.mem z₀
-      sorry
+  --       exact Subtype.mem z₀
+  --     sorry
 
 
 -- main theorem: holomorphic functions on simply connected open sets have primitives
-theorem hasPrimitivesOfSimplyConnected (U : Set ℂ) (hSc : SimplyConnectedSpace U) (hO : IsOpen U) :
-    hasPrimitives U := by
+theorem HasPrimitivesOfSimplyConnected (U : Set ℂ) (hSc : SimplyConnectedSpace U) (hO : IsOpen U) :
+    HasPrimitives U := by
   sorry
 
 
-#exit
-theorem contDiffStraightSeg (t₁ t₂ : ℝ ) (ht : t₁ < t₂) (z₁ z₂ : ℂ) (γ : ℝ → ℂ ) : ∀ᶠ i in 𝓝 i₀, ContinuousOn (F i) (γ '' Icc t₁ t₂) := by
-  refine straightSeg t₁ t₂ ht z₁ z₂
-  sorry
+
+-- theorem contDiffStraightSeg (t₁ t₂ : ℝ ) (ht : t₁ < t₂) (z₁ z₂ : ℂ) (γ : ℝ → ℂ ) : ∀ᶠ i in 𝓝 i₀, ContinuousOn (F i) (γ '' Icc t₁ t₂) := by
+--   refine straightSeg t₁ t₂ ht z₁ z₂
+--   sorry
