@@ -26,7 +26,7 @@ def VanishesOnRectanglesInDisc (c : ℂ) (r : ℝ) (f : ℂ → ℂ) : Prop :=
     ∀ z w, z ∈ Metric.ball c r → w ∈ Metric.ball c r → (z.re + w.im * I) ∈ Metric.ball c r →
     (w.re + z.im * I) ∈ Metric.ball c r →
     (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) - (∫ x : ℝ in z.re..w.re, f (x + w.im * I))
-     + I • (∫ y : ℝ in z.im..w.im, f (w.re + y * I)) - I • (∫ y : ℝ in z.im..w.im, f (z.re + y * I)) = 0
+     + I • (∫ y : ℝ in z.im..w.im, f (w.re + y * I)) - I • ∫ y : ℝ in z.im..w.im, f (z.re + y * I) = 0
 
 
 -- /-- For small h, the rectangle stays inside the disc -/
@@ -42,12 +42,10 @@ def VanishesOnRectanglesInDisc (c : ℂ) (r : ℝ) (f : ℂ → ℂ) : Prop :=
 --   rw [mem_ball_iff_norm, normSq_eq_abs, norm_eq_abs, sq_lt_sq, abs_abs, abs_eq_self.mpr hr]
 
 
-
-
 /-- diff of wedges -/
-lemma diff_of_wedges {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metric.ball c r)
-    {f : ℂ → ℂ}
-    (hf : DifferentiableOn ℂ f (Metric.ball c r)) :
+lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ}
+    (hz : z ∈ Metric.ball c r) {f : ℂ → ℂ} (f_cont : ContinuousOn f (Metric.ball c r))
+    (hf : VanishesOnRectanglesInDisc c r f) :
     ∀ᶠ h in 𝓝 0,
       WedgeInt c (z+h) f - WedgeInt c z f = WedgeInt z (z+h) f := by
   --simp only [Metric.mem_ball] at hz
@@ -70,7 +68,7 @@ lemma diff_of_wedges {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metr
     apply ContinuousOn.intervalIntegrable
     convert @ContinuousOn.comp ℝ ℂ ℂ _ _ _ f (fun x => (x : ℂ) + b * I) (Set.uIcc a₁ a₂)
       ((fun (x : ℝ) => (x : ℂ) + b * I) '' (Set.uIcc a₁ a₂)) ?_ ?_ ?_
-    · convert hf.continuousOn
+    · apply f_cont.mono
       sorry -- need to prove that this is a subset of the domain
     · apply Continuous.continuousOn
       exact Continuous.comp (continuous_add_right _) continuous_ofReal
@@ -81,7 +79,7 @@ lemma diff_of_wedges {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metr
     apply ContinuousOn.intervalIntegrable
     convert @ContinuousOn.comp ℝ ℂ ℂ _ _ _ f (fun y => (a : ℂ) + y * I) (Set.uIcc b₁ b₂)
       ((fun (y : ℝ) => (a : ℂ) + y * I) '' (Set.uIcc b₁ b₂)) ?_ ?_ ?_
-    · convert hf.continuousOn
+    · apply f_cont.mono
       sorry -- need to prove that this is a subset of the domain
     · apply Continuous.continuousOn
       refine Continuous.comp (continuous_add_left _) ?_
@@ -102,20 +100,22 @@ lemma diff_of_wedges {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metr
   have rectZero : intVIII = - intVII + intV + intIV := by
     rw [← sub_eq_zero]
     have : intVII - intV + intVIII - intIV = 0 := by
-      convert integral_boundary_rect_eq_zero_of_differentiable_on_off_countable f (z.re + c.im * I) ((z+h).re + z.im * I) ∅ ?_ ?_ ?_ using 4
+      convert hf (z.re + c.im * I) ((z+h).re + z.im * I) ?_ ?_ ?_ ?_ using 2
+      · congr! 1
+        · congr! 1
+          · simp
+          · simp
+        · simp
       · simp
-      · congr! 1 <;> simp
-      · congr! 1 <;> simp
-      · simp
-      · simp
-      · simp
-      · simp
-      · sorry -- ContinuousOn
-      · intro x hx
-        sorry -- differentiable
+      · sorry -- point in ball
+      · sorry -- point in ball
+      · simp only [Metric.mem_ball] at hz
+        simp [hz]
+      · simp only [add_re, ofReal_add, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+          sub_self, add_zero, add_im, mul_im, zero_add]
+        sorry
     rw [← this]
     ring
-
   rw [intIdecomp]
   rw [intIIdecomp]
   rw [rectZero]
@@ -432,7 +432,20 @@ theorem moreiras_theorem {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
 theorem vanishesOnRectangles_of_holomorphic {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
     (hf : DifferentiableOn ℂ f (Metric.ball c r)) :
     VanishesOnRectanglesInDisc c r f := by
-  sorry
+  intro z w hz hw hz' hw'
+  convert integral_boundary_rect_eq_zero_of_differentiable_on_off_countable f z w ∅ ?_ ?_ ?_ using 4
+  · simp
+  · apply (hf.mono _).continuousOn
+    intro x hx
+    sorry -- rectangle is inside disc
+  · intro x hx
+    apply hf.differentiableAt
+    rw [mem_nhds_iff]
+    refine ⟨Metric.ball c r, Eq.subset rfl, Metric.isOpen_ball, ?_⟩
+    sorry -- rectangle is inside disc
+
+
+
 
 -- To prove the main theorem, we first prove it on a disc
 theorem hasPrimitives_of_disc (c : ℂ) {r : ℝ} (hr : 0 < r) : HasPrimitives (Metric.ball c r) :=
