@@ -42,19 +42,20 @@ lemma segment_reProdIm_segment_eq_convexHull (z w : ℂ) :
     equivRealProd_symm_apply, re_add_im]
 
 theorem rectangle_in_convex {U : Set ℂ} (U_convex : Convex ℝ U) {z w : ℂ} (hz : z ∈ U)
-    (hw : w ∈ U)  (hzw : (z.re + w.im * I) ∈ U)
-    (hwz : (w.re + z.im * I) ∈ U) :
+    (hw : w ∈ U)  (hzw : (z.re + w.im * I) ∈ U) (hwz : (w.re + z.im * I) ∈ U) :
     ([[z.re, w.re]] ×ℂ [[z.im, w.im]]) ⊆ U := by
   rw [segment_reProdIm_segment_eq_convexHull]
-  convert convexHull_min ?_ (U_convex) -- convex_ball c r
---  simp [*, Set.insert_subset, Set.singleton_subset_iff] -- `simp` made no progress
-  refine Set.insert_subset hz ?_
-  refine Set.insert_subset hzw ?_
-  refine Set.insert_subset hwz ?_
+  convert convexHull_min ?_ (U_convex)
+  refine Set.insert_subset hz (Set.insert_subset hzw (Set.insert_subset hwz ?_))
   exact Set.singleton_subset_iff.mpr hw
 
 lemma corner_rectangle_in_disc {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metric.ball c r) :
     z.re + c.im * I ∈ Metric.ball c r := by
+  simp only [Metric.mem_ball] at hz ⊢
+  rw [Complex.dist_of_im_eq] <;> simp only [add_re, I_re, mul_zero, I_im, zero_add, add_im,
+    add_zero, sub_self, mul_re, mul_one, ofReal_im, mul_im, ofReal_re]
+  apply lt_of_le_of_lt ?_ hz
+  rw [Complex.dist_eq_re_im, Real.dist_eq]
   sorry
 
 -- lemma corner_rectangle_in_disc' {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metric.ball c r) :
@@ -352,7 +353,7 @@ lemma deriv_of_horv (a:ℝ) {f:ℝ →ℂ} {U: Set ℝ} {hUa: a ∈ U} {hU: IsOp
   sorry
 
 
-lemma deriv_of_wedgeInt {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: ContinuousOn f U)
+lemma deriv_of_wedgeInt' {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: ContinuousOn f U)
     {z₀ : ℂ} (hz₀ : z₀∈U) :
     Asymptotics.IsLittleO (𝓝 0) (fun h:ℂ ↦ ((WedgeInt z₀ (z₀+h) f) - h*(f z₀))) (fun h ↦ h) := by
 
@@ -528,13 +529,31 @@ lemma deriv_of_wedgeInt {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: Conti
 --   simp only [Set.mem_empty_iff_false, nhdsWithin_empty, map_sub, IsEmpty.forall_iff, forall_const, exists_const,
 --   forall_true_left]
 
+theorem deriv_of_wedgeInt {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
+    (hf : ContinuousOn f (Metric.ball c r)) (hf₂ : VanishesOnRectanglesInDisc c r f)
+    {z : ℂ} (hz : z ∈ Metric.ball c r) :
+    deriv (fun z ↦ WedgeInt c z f) z = f z := by
+
+  sorry
+
+theorem DifferentiableOn_WedgeInt {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
+    (hf : ContinuousOn f (Metric.ball c r))
+    (hf₂ : VanishesOnRectanglesInDisc c r f) : DifferentiableOn ℂ (fun z ↦ WedgeInt c z f) (Metric.ball c r) := by
+  intro z hz
+  use (ContinuousLinearMap.smulRight (1 : ℂ →L[ℂ] ℂ) (f z))
+  rw [hasFDerivWithinAt_iff_hasDerivWithinAt]
+  dsimp [HasDerivWithinAt, HasDerivAtFilter, HasFDerivAtFilter]
+  --use ContinuousLinearMap.smulRight 1 f
+  --ContinuousLinearMap.smulRight 1 f
+  sorry
 
 /-- Moreira's theorem -/
 theorem moreiras_theorem {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
     (hf : ContinuousOn f (Metric.ball c r))
     (hf₂ : VanishesOnRectanglesInDisc c r f) :
-    ∃ g : ℂ → ℂ, DifferentiableOn ℂ g (Metric.ball c r) ∧ Set.EqOn (deriv g) f (Metric.ball c r) := by
-  sorry
+    ∃ g : ℂ → ℂ, DifferentiableOn ℂ g (Metric.ball c r) ∧ Set.EqOn (deriv g) f (Metric.ball c r) :=
+  ⟨fun z ↦ WedgeInt c z f, DifferentiableOn_WedgeInt hr hf hf₂,
+    fun _ hz ↦ deriv_of_wedgeInt hr hf hf₂ hz⟩
 
 theorem vanishesOnRectangles_of_holomorphic {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
     (hf : DifferentiableOn ℂ f (Metric.ball c r)) :
@@ -562,7 +581,7 @@ theorem vanishesOnRectangles_of_holomorphic {c : ℂ} {r : ℝ} (hr : 0 < r) {f 
 
 -- To prove the main theorem, we first prove it on a disc
 theorem hasPrimitives_of_disc (c : ℂ) {r : ℝ} (hr : 0 < r) : HasPrimitives (Metric.ball c r) :=
-    fun _ hf ↦ moreiras_theorem hr hf.continuousOn (vanishesOnRectangles_of_holomorphic hr hf)
+  fun _ hf ↦ moreiras_theorem hr hf.continuousOn (vanishesOnRectangles_of_holomorphic hr hf)
 
   -- by_cases hne : U = ∅
   -- · convert HasPrimitivesOfEmpty
