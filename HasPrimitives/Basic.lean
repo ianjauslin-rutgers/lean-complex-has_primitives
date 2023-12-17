@@ -53,19 +53,16 @@ theorem rectangle_in_convex {U : Set ℂ} (U_convex : Convex ℝ U) {z w : ℂ} 
   refine Set.insert_subset hwz ?_
   exact Set.singleton_subset_iff.mpr hw
 
--- lemma corner_rectangle_in_disc {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metric.ball c r) :
---     c.re + z.im * I ∈ Metric.ball c r := by
---   sorry
-
 lemma corner_rectangle_in_disc {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metric.ball c r) :
     z.re + c.im * I ∈ Metric.ball c r := by
   sorry
 
+-- lemma corner_rectangle_in_disc' {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metric.ball c r) :
+--     c.re + z.im * I ∈ Metric.ball c r := by
+--   sorry
+
 -- theorem center_rectangle_in_disc {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metric.ball c r) :
---     [[c.re, z.re]] ×ℂ [[c.im, z.im]] ⊆ Metric.ball c r := by
---   convert rectangle_in_convex (convex_ball c r) (Metric.mem_ball_self hr) hz (corner_rectangle_in_disc hr hz) ?_ using 1
---   · sorry
---   · sorry
+--     [[c.re, z.re]] ×ℂ [[c.im, z.im]] ⊆ Metric.ball c r := rectangle_in_convex (convex_ball c r) (Metric.mem_ball_self hr) hz (corner_rectangle_in_disc' hr hz) (corner_rectangle_in_disc hr hz)
 
 end Complex
 
@@ -547,11 +544,17 @@ theorem vanishesOnRectangles_of_holomorphic {c : ℂ} {r : ℝ} (hr : 0 < r) {f 
   · simp
   · apply (hf.mono _).continuousOn
     intro x hx
-    sorry -- rectangle is inside disc
+    exact Set.mem_of_mem_of_subset hx (rectangle_in_convex (convex_ball c r) hz hw hz' hw')
   · intro x hx
     apply hf.differentiableAt
     rw [mem_nhds_iff]
     refine ⟨Metric.ball c r, Eq.subset rfl, Metric.isOpen_ball, ?_⟩
+    apply Set.mem_of_mem_of_subset ?_ (rectangle_in_convex (convex_ball c r) hz hw hz' hw')
+    simp only [ge_iff_le, gt_iff_lt, lt_max_iff, min_lt_iff, lt_self_iff_false, false_or, or_false,
+      lt_or_lt_iff_ne, ne_eq, not_not, le_min_iff, max_le_iff, le_refl, true_and, and_true,
+      diff_empty] at hx
+    apply Set.mem_of_mem_of_subset hx
+
     sorry -- rectangle is inside disc
 
 
