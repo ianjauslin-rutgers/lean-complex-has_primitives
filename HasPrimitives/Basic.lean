@@ -6,11 +6,13 @@ import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 import Mathlib.MeasureTheory.Integral.IntervalIntegral
 import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.Analysis.Convex.Hull
+import Mathlib.Analysis.Convex.Combination
+import Mathlib.Data.Complex.Module
 
 -- Is this needed??
 -- import Mathlib.Tactic.LibrarySearch
 
-open Complex Topology
+open Complex Topology Set
 
 -- Is this needed??
 --set_option autoImplicit false
@@ -18,25 +20,85 @@ set_option autoImplicit true
 
 open scoped Interval
 
-theorem rect_eq_convex_hull (z w : ℂ) :
-    ([[z.re, w.re]] ×ℂ [[z.im, w.im]]) =
-      convexHull ℝ {z, w, z.re + w.im * I, w.re + z.im * I} := by
+
+namespace Complex
+-- Thanks to Yuri Kudryashov for the first three below:
+
+lemma convexHull_reProdIm (s t : Set ℝ) :
+    convexHull ℝ (s ×ℂ t) = convexHull ℝ s ×ℂ convexHull ℝ t :=
+  calc
+    convexHull ℝ (equivRealProdLm ⁻¹' (s ×ˢ t)) = equivRealProdLm ⁻¹' (convexHull ℝ (s ×ˢ t)) := by
+      simpa only [← LinearEquiv.image_symm_eq_preimage]
+        using equivRealProdLm.symm.toLinearMap.convexHull_image (s ×ˢ t)
+    _ = convexHull ℝ s ×ℂ convexHull ℝ t := by rw [convexHull_prod]; rfl
+
+lemma preimage_equivRealProd_prod (s t : Set ℝ) : equivRealProd ⁻¹' (s ×ˢ t) = s ×ℂ t := rfl
+
+lemma segment_reProdIm_segment_eq_convexHull (z w : ℂ) :
+    [[z.re, w.re]] ×ℂ [[z.im, w.im]] = convexHull ℝ {z, z.re + w.im * I, w.re + z.im * I, w} := by
+  simp_rw [← segment_eq_uIcc, ← convexHull_pair, ← convexHull_reProdIm,
+    ← preimage_equivRealProd_prod, insert_prod, singleton_prod, image_pair,
+    insert_union, ← insert_eq, Set.preimage_equiv_eq_image_symm, image_insert_eq, image_singleton,
+    equivRealProd_symm_apply, re_add_im]
+
+theorem rectangle_in_convex {U : Set ℂ} (U_convex : Convex ℝ U) {z w : ℂ} (hz : z ∈ U)
+    (hw : w ∈ U)  (hzw : (z.re + w.im * I) ∈ U)
+    (hwz : (w.re + z.im * I) ∈ U) :
+    ([[z.re, w.re]] ×ℂ [[z.im, w.im]]) ⊆ U := by
+  rw [segment_reProdIm_segment_eq_convexHull]
+  convert convexHull_min ?_ (U_convex) -- convex_ball c r
+--  simp [*, Set.insert_subset, Set.singleton_subset_iff] -- `simp` made no progress
+  refine Set.insert_subset hz ?_
+  refine Set.insert_subset hzw ?_
+  refine Set.insert_subset hwz ?_
+  exact Set.singleton_subset_iff.mpr hw
+
+-- lemma corner_rectangle_in_disc {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metric.ball c r) :
+--     c.re + z.im * I ∈ Metric.ball c r := by
+--   sorry
+
+lemma corner_rectangle_in_disc {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metric.ball c r) :
+    z.re + c.im * I ∈ Metric.ball c r := by
   sorry
 
-theorem rectangle_inside_disc {c : ℂ} {r : ℝ} {z w : ℂ} (hz : z ∈ Metric.ball c r)
-    (hw : w ∈ Metric.ball c r)  (hzw : (z.re + w.im * I) ∈ Metric.ball c r)
-    (hwz : (w.re + z.im * I) ∈ Metric.ball c r) :
-    ([[z.re, w.re]] ×ℂ [[z.im, w.im]]) ⊆ Metric.ball c r := by
-  rw [rect_eq_convex_hull]
-  have : Convex ℝ (Metric.ball c r) := convex_ball c r
-  convert convexHull_min ?_ (convex_ball c r)
-  refine Set.insert_subset hz ?_
-  refine Set.insert_subset hw ?_
-  refine Set.insert_subset hzw ?_
-  exact Set.singleton_subset_iff.mpr hwz
+-- theorem center_rectangle_in_disc {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metric.ball c r) :
+--     [[c.re, z.re]] ×ℂ [[c.im, z.im]] ⊆ Metric.ball c r := by
+--   convert rectangle_in_convex (convex_ball c r) (Metric.mem_ball_self hr) hz (corner_rectangle_in_disc hr hz) ?_ using 1
+--   · sorry
+--   · sorry
+
+end Complex
 
 
-#exit
+
+theorem horizontal_segment_eq (a₁ a₂ b : ℝ) : (fun x => ↑x + ↑b * I) '' [[a₁, a₂]] = [[a₁, a₂]] ×ℂ {b} := by
+  rw [← preimage_equivRealProd_prod]
+  ext x
+  constructor
+  · intro hx
+    simp only [ge_iff_le, mem_image] at hx
+    obtain ⟨x₁, hx₁, hx₁'⟩ := hx
+    rw [← hx₁']
+--    rw [← preimage_equivRealProd_prod]
+    rw [Set.mem_preimage, Set.mem_prod]
+    simp only [equivRealProd_apply, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im,
+      mul_one, sub_self, add_zero, add_im, mul_im, zero_add, ge_iff_le, mem_singleton_iff, and_true]
+    exact hx₁
+  · intro hx
+    --rw [← preimage_equivRealProd_prod] at hx
+    rw [Set.mem_preimage] at hx
+    rw [Set.mem_image]
+    use x.re
+    simp only [equivRealProd_apply, ge_iff_le, prod_singleton, mem_image, Prod.mk.injEq] at hx
+    obtain ⟨x₁, hx₁, hx₁', hx₁''⟩ := hx
+    rw [← hx₁']
+    refine ⟨hx₁, ?_⟩
+    ext <;> simp [hx₁', hx₁'']
+
+
+theorem vertical_segment_eq (a b₁ b₂ : ℝ) : (fun y => ↑a + ↑y * I) '' [[b₁, b₂]] = {a} ×ℂ [[b₁, b₂]] := by
+  sorry
+
 
 
 -- From V. Beffara https://github.com/vbeffara/RMT4
@@ -74,9 +136,13 @@ lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} (hr : 0 < r)
     ∀ᶠ h in 𝓝 0,
       WedgeInt c (z+h) f - WedgeInt c z f = WedgeInt z (z+h) f := by
   --simp only [Metric.mem_ball] at hz
-  have : 0 < (r - dist z c) / 2 := by sorry
-  filter_upwards [Metric.ball_mem_nhds 0 this]
+  have r₁ := (r - dist z c) / 2
+  have hr₁ : 0 < r₁ := by sorry
+  filter_upwards [Metric.ball_mem_nhds 0 hr₁]
   intro h hh
+  have hzPlusH : z + h ∈ Metric.ball c r := by sorry
+  have z_ball : Metric.ball z r₁ ⊆ Metric.ball c r := by sorry
+  have hz_in_z_ball : z + h ∈ Metric.ball z r₁ := by sorry
 --  simp only [Metric.mem_ball, dist_zero_right, norm_eq_abs] at hh
   simp only [WedgeInt] --, add_re, ofReal_add, add_im, smul_eq_mul]
   set intI := ∫ x : ℝ in c.re..(z + h).re, f (x + c.im * I)
@@ -87,23 +153,18 @@ lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} (hr : 0 < r)
   set intVI := I • ∫ y : ℝ in z.im..(z + h).im, f ((z+h).re + y * I)
   let intVII := ∫ x : ℝ in z.re..(z+h).re, f (x + c.im * I)
   let intVIII := I • ∫ y : ℝ in c.im..z.im, f ((z+h).re + y * I)
-  have integrHoriz : ∀ a₁ a₂ b : ℝ, a₁ + b * I ∈ Metric.ball c r → a₂ + b * I ∈ Metric.ball c r →
+  have integrableHoriz : ∀ a₁ a₂ b : ℝ, a₁ + b * I ∈ Metric.ball c r → a₂ + b * I ∈ Metric.ball c r →
     IntervalIntegrable (fun x => f (x + b * I)) MeasureTheory.volume a₁ a₂
   · intro a₁ a₂ b ha₁ ha₂
     apply ContinuousOn.intervalIntegrable
     convert @ContinuousOn.comp ℝ ℂ ℂ _ _ _ f (fun x => (x : ℂ) + b * I) (Set.uIcc a₁ a₂)
       ((fun (x : ℝ) => (x : ℂ) + b * I) '' (Set.uIcc a₁ a₂)) ?_ ?_ ?_
     · apply f_cont.mono
-      convert rectangle_inside_disc c hr (a₁ + b * I) (a₂ + b * I) ha₁ ha₂ ?_ ?_ using 1
+      convert rectangle_in_convex (convex_ball c r) ha₁ ha₂ ?_ ?_ using 1
       · simp only [ge_iff_le, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
         sub_self, add_zero, add_im, mul_im, zero_add, le_refl, Set.uIcc_of_le, not_true_eq_false,
         gt_iff_lt, lt_self_iff_false, Set.Icc_self]
-        ext x
-        constructor
-        · intro hx
-          sorry  -- need to prove that this is a subset of the domain
-        · intro hx
-          sorry  -- need to prove that this is a subset of the domain
+        exact horizontal_segment_eq a₁ a₂ b
       · simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
         add_zero, add_im, mul_im, zero_add, ha₁]
       · simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
@@ -111,23 +172,18 @@ lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} (hr : 0 < r)
     · apply Continuous.continuousOn
       exact Continuous.comp (continuous_add_right _) continuous_ofReal
     · exact Set.mapsTo_image _ _
-  have integrVert : ∀ a b₁ b₂ : ℝ, a + b₁ * I ∈ Metric.ball c r → a + b₂ * I ∈ Metric.ball c r →
+  have integrableVert : ∀ a b₁ b₂ : ℝ, a + b₁ * I ∈ Metric.ball c r → a + b₂ * I ∈ Metric.ball c r →
     IntervalIntegrable (fun y => f (a + y * I)) MeasureTheory.volume b₁ b₂
   · intro a b₁ b₂ hb₁ hb₂
     apply ContinuousOn.intervalIntegrable
     convert @ContinuousOn.comp ℝ ℂ ℂ _ _ _ f (fun y => (a : ℂ) + y * I) (Set.uIcc b₁ b₂)
       ((fun (y : ℝ) => (a : ℂ) + y * I) '' (Set.uIcc b₁ b₂)) ?_ ?_ ?_
     · apply f_cont.mono
-      convert rectangle_inside_disc c hr (a + b₁ * I) (a + b₂ * I) hb₁ hb₂ ?_ ?_ using 1
+      convert rectangle_in_convex (convex_ball c r) hb₁ hb₂ ?_ ?_ using 1
       · simp only [ge_iff_le, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
         sub_self, add_zero, add_im, mul_im, zero_add, le_refl, Set.uIcc_of_le, not_true_eq_false,
         gt_iff_lt, lt_self_iff_false, Set.Icc_self]
-        ext x
-        constructor
-        · intro hx
-          sorry  -- need to prove that this is a subset of the domain
-        · intro hx
-          sorry  -- need to prove that this is a subset of the domain
+        exact vertical_segment_eq a b₁ b₂
       · simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
         add_zero, add_im, mul_im, zero_add, hb₂]
       · simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
@@ -137,17 +193,20 @@ lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} (hr : 0 < r)
       refine Continuous.comp (continuous_mul_right _) continuous_ofReal
     · exact Set.mapsTo_image _ _
   have intIdecomp : intI = intIII + intVII  := by
-    rw [intervalIntegral.integral_add_adjacent_intervals] <;> apply integrHoriz
+    rw [intervalIntegral.integral_add_adjacent_intervals] <;> apply integrableHoriz
     · simp only [re_add_im, Metric.mem_ball, dist_self, hr]
-    · sorry -- point in ball
-    · sorry -- point in ball
-    · sorry -- point in ball
+    · exact corner_rectangle_in_disc hr hz
+    · exact corner_rectangle_in_disc hr hz
+    · exact corner_rectangle_in_disc hr hzPlusH
   have intIIdecomp : intII = intVIII + intVI := by
-    rw [← smul_add, intervalIntegral.integral_add_adjacent_intervals] <;> apply integrVert
-    · sorry
-    · sorry
-    · sorry
-    · sorry
+    rw [← smul_add, intervalIntegral.integral_add_adjacent_intervals] <;> apply integrableVert
+    · exact corner_rectangle_in_disc hr hzPlusH
+    · apply Set.mem_of_subset_of_mem z_ball
+      exact corner_rectangle_in_disc hr₁ hz_in_z_ball
+    · apply Set.mem_of_subset_of_mem z_ball
+      exact corner_rectangle_in_disc hr₁ hz_in_z_ball
+    · convert hzPlusH using 1
+      ext <;> simp
   have rectZero : intVIII = - intVII + intV + intIV := by
     rw [← sub_eq_zero]
     have : intVII - intV + intVIII - intIV = 0 := by
@@ -158,13 +217,13 @@ lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} (hr : 0 < r)
           · simp
         · simp
       · simp
-      · sorry -- point in ball
-      · sorry -- point in ball
-      · simp only [Metric.mem_ball] at hz
-        simp [hz]
-      · simp only [add_re, ofReal_add, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
-          sub_self, add_zero, add_im, mul_im, zero_add]
-        sorry
+      · exact corner_rectangle_in_disc hr hz
+      · apply Set.mem_of_subset_of_mem z_ball
+        exact corner_rectangle_in_disc hr₁ hz_in_z_ball
+      · convert hz using 1
+        ext <;> simp
+      · convert corner_rectangle_in_disc hr hzPlusH using 1
+        ext <;> simp
     rw [← this]
     ring
   rw [intIdecomp]
