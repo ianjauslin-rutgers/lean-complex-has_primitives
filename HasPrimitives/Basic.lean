@@ -529,23 +529,31 @@ lemma deriv_of_wedgeInt' {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: Cont
 --   simp only [Set.mem_empty_iff_false, nhdsWithin_empty, map_sub, IsEmpty.forall_iff, forall_const, exists_const,
 --   forall_true_left]
 
+theorem deriv_of_wedgeInt'' {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
+    (hf : ContinuousOn f (Metric.ball c r)) (hf₂ : VanishesOnRectanglesInDisc c r f)
+    {ε : ℝ} (hε : 0 < ε) :
+    ∀ᶠ (w : ℂ) in 𝓝[Metric.ball c r] z, ‖WedgeInt c w f - WedgeInt c z f - (w - z) * (1 * f z)‖ ≤ ε * ‖w - z‖ := by
+
+  sorry
+
 theorem deriv_of_wedgeInt {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
     (hf : ContinuousOn f (Metric.ball c r)) (hf₂ : VanishesOnRectanglesInDisc c r f)
     {z : ℂ} (hz : z ∈ Metric.ball c r) :
     deriv (fun z ↦ WedgeInt c z f) z = f z := by
-
+  dsimp [deriv]
   sorry
 
 theorem DifferentiableOn_WedgeInt {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
     (hf : ContinuousOn f (Metric.ball c r))
     (hf₂ : VanishesOnRectanglesInDisc c r f) : DifferentiableOn ℂ (fun z ↦ WedgeInt c z f) (Metric.ball c r) := by
-  intro z hz
+  intro z _
   use (ContinuousLinearMap.smulRight (1 : ℂ →L[ℂ] ℂ) (f z))
   rw [hasFDerivWithinAt_iff_hasDerivWithinAt]
   dsimp [HasDerivWithinAt, HasDerivAtFilter, HasFDerivAtFilter]
-  --use ContinuousLinearMap.smulRight 1 f
-  --ContinuousLinearMap.smulRight 1 f
-  sorry
+  rw [Asymptotics.IsLittleO_def]
+  intro _ h_ε
+  rw [Asymptotics.isBigOWith_iff]
+  exact deriv_of_wedgeInt'' hr hf hf₂ h_ε
 
 /-- Moreira's theorem -/
 theorem moreiras_theorem {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
