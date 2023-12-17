@@ -5,6 +5,7 @@ import Mathlib.Analysis.Convex.Basic
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 import Mathlib.MeasureTheory.Integral.IntervalIntegral
 import Mathlib.Analysis.Complex.CauchyIntegral
+import Mathlib.Analysis.Convex.Hull
 
 -- Is this needed??
 -- import Mathlib.Tactic.LibrarySearch
@@ -17,13 +18,26 @@ set_option autoImplicit true
 
 open scoped Interval
 
+theorem rect_eq_convex_hull (z w : ℂ) :
+    ([[z.re, w.re]] ×ℂ [[z.im, w.im]]) =
+      convexHull ℝ {z, w, z.re + w.im * I, w.re + z.im * I} := by
+  sorry
 
-theorem rectangle_inside_disc (c : ℂ) {r : ℝ} (hr : 0 < r) (z w : ℂ) (hz : z ∈ Metric.ball c r)
+theorem rectangle_inside_disc {c : ℂ} {r : ℝ} {z w : ℂ} (hz : z ∈ Metric.ball c r)
     (hw : w ∈ Metric.ball c r)  (hzw : (z.re + w.im * I) ∈ Metric.ball c r)
     (hwz : (w.re + z.im * I) ∈ Metric.ball c r) :
     ([[z.re, w.re]] ×ℂ [[z.im, w.im]]) ⊆ Metric.ball c r := by
-  intro x hx
-  sorry
+  rw [rect_eq_convex_hull]
+  have : Convex ℝ (Metric.ball c r) := convex_ball c r
+  convert convexHull_min ?_ (convex_ball c r)
+  refine Set.insert_subset hz ?_
+  refine Set.insert_subset hw ?_
+  refine Set.insert_subset hzw ?_
+  exact Set.singleton_subset_iff.mpr hwz
+
+
+#exit
+
 
 -- From V. Beffara https://github.com/vbeffara/RMT4
 def HasPrimitives (U : Set ℂ) : Prop :=
