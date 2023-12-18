@@ -292,16 +292,11 @@ sub_zero, I_re, I_im, mul_im, add_zero, one_mul, zero_sub, add_im,
 zero_add]
    <;> ring
 
-example (hyp: ∀ᶠ h in (𝓝 0), h=2) : ∀ᶠ h in (𝓝 0), h^2=4 := by
-  filter_upwards [hyp]
-  intro a hw
-  rw [hw]
-  ring
-
 
 
 lemma deriv_of_linint {f: ℝ → ℂ} {a: ℝ} {U : Set ℝ} (hU: IsOpen U) (hUa: a∈ U) (hf: ContinuousOn f U) :
     Asymptotics.IsLittleO (𝓝 0) (fun h ↦ ((∫ x in a..a+h, f x) - h*(f a))) (fun h ↦ h) := by
+
   sorry
 
 lemma deriv_of_horv_0 {f:ℝ →ℂ} {U: Set ℝ} {hU0: 0 ∈ U} {hU: IsOpen U}
