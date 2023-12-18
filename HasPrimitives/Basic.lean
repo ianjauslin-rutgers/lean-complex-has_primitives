@@ -585,11 +585,26 @@ theorem DifferentiableOn_WedgeInt {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → 
   apply eventually_nhdsWithin_of_eventually_nhds
   exact deriv_of_wedgeInt'' hr hf hf₂ hz h_ε
 
+
+-- ADDING 12/18/23 from Heather
+-- Put near `derivWithin_zero_of_nmem_closure`
+theorem hasDerivWithinAt_of_nmem_closure {𝕜 : Type u} [NontriviallyNormedField 𝕜] {F : Type v} [NormedAddCommGroup F] [NormedSpace 𝕜 F] {f : 𝕜 → F} {x : 𝕜} {f' : F} {s : Set 𝕜} (h : x ∉ closure s) :
+HasDerivWithinAt f f' s x := by sorry
+
+
 /-- Moreira's theorem -/
 theorem moreiras_theorem {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
     (hf : ContinuousOn f (Metric.ball c r))
     (hf₂ : VanishesOnRectanglesInDisc c r f) :
-    ∃ g : ℂ → ℂ, DifferentiableOn ℂ g (Metric.ball c r) ∧ Set.EqOn (deriv g) f (Metric.ball c r) :=
+    ∃ g : ℂ → ℂ, ∀ z ∈ (Metric.ball c r), HasDerivAt g (f z) z := by
+  use fun z ↦ WedgeInt c z f
+  intro z hz
+
+  sorry
+#exit
+
+
+    DifferentiableOn ℂ g (Metric.ball c r) ∧ Set.EqOn (deriv g) f (Metric.ball c r) :=
   ⟨fun z ↦ WedgeInt c z f, DifferentiableOn_WedgeInt hr hf hf₂,
     fun _ hz ↦ deriv_of_wedgeInt hr hf hf₂ hz⟩
 
