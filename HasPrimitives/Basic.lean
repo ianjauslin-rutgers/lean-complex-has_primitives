@@ -371,61 +371,60 @@ lemma deriv_of_horv (a:ℝ) {f:ℝ →ℂ} {U: Set ℝ} {hUa: a ∈ U} {hU: IsOp
 lemma deriv_of_wedgeInt' {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: ContinuousOn f U)
     {z₀ : ℂ} (hz₀ : z₀∈U) :
     Asymptotics.IsLittleO (𝓝 0) (fun h:ℂ ↦ ((WedgeInt z₀ (z₀+h) f) - h*(f z₀))) (fun h ↦ h) := by
+  sorry
+  -- simp [WedgeInt]
+  -- -- turn littleO into bigO
+  -- rw [Asymptotics.isLittleO_iff]
+  -- intro c hc
 
-  simp [WedgeInt]
-  -- turn littleO into bigO
-  rw [Asymptotics.isLittleO_iff]
-  intro c hc
+  -- -- get ball around z₀
+  -- obtain ⟨ε,hε,B⟩ := (Metric.isOpen_iff.mp hU) z₀ hz₀
 
-  -- get ball around z₀
-  obtain ⟨ε,hε,B⟩ := (Metric.isOpen_iff.mp hU) z₀ hz₀
+  -- -- restate goal, splitting real and imaginary parts of h
+  -- have : ∀ᶠ (hre : ℝ) in 𝓝 0, ∀ᶠ(him : ℝ) in 𝓝 0,
+  -- ‖((∫ (x : ℝ) in z₀.re..z₀.re + hre, f (↑x + ↑z₀.im * I)) +
+  --         I * ∫ (y : ℝ) in z₀.im..z₀.im + him, f (↑z₀.re + ↑hre + ↑y * I)) -
+  --       (hre+him*I) * f z₀‖ ≤
+  --   c * ‖hre+him*I‖ := by
+    -- -- apply fundamental theorem of calculus to horizontal part
+    -- have continuous_h : ContinuousOn (fun x:ℝ => f (x + z₀.im*I)) z₀.re := by
+    --   sorry
+    -- have stronglymeasurable_h : StronglyMeasurableAtFilter (fun x:ℝ => f (x + z₀.im*I)) (nhds z₀.re) := by
+    --   sorry
+    -- have horizontal := deriv_of_horv z₀.re  continuous_h stronglymeasurable_h c hc
 
-  -- restate goal, splitting real and imaginary parts of h
-  have : ∀ᶠ (hre : ℝ) in 𝓝 0, ∀ᶠ(him : ℝ) in 𝓝 0,
-  ‖((∫ (x : ℝ) in z₀.re..z₀.re + hre, f (↑x + ↑z₀.im * I)) +
-          I * ∫ (y : ℝ) in z₀.im..z₀.im + him, f (↑z₀.re + ↑hre + ↑y * I)) -
-        (hre+him*I) * f z₀‖ ≤
-    c * ‖hre+him*I‖ := by
+    -- -- condition on h.re
+    -- rw [Filter.eventually_iff] at horizontal
+    -- filter_upwards [Metric.ball_mem_nhds 0 hε,horizontal]
+    -- intro hre hre_eps hre_diff
 
-    -- apply fundamental theorem of calculus to horizontal part
-    have continuous_h : ContinuousOn (fun x:ℝ => f (x + z₀.im*I)) z₀.re := by
-      sorry
-    have stronglymeasurable_h : StronglyMeasurableAtFilter (fun x:ℝ => f (x + z₀.im*I)) (nhds z₀.re) := by
-      sorry
-    have horizontal := deriv_of_horv z₀.re  continuous_h stronglymeasurable_h c hc
+    -- -- apply fundamental theorem of calculus to vertical part
+    -- have continuous_v : ContinuousAt (fun y:ℝ => f (z₀.re + hre + y*I)) z₀.im := by
+    --   sorry
+    -- have stronglymeasurable_v : StronglyMeasurableAtFilter (fun y:ℝ => f (z₀.re + hre + y*I)) (nhds z₀.im) := by
+    --   sorry
+    -- have vertical := deriv_of_horv z₀.im  continuous_v stronglymeasurable_v c hc
 
-    -- condition on h.re
-    rw [Filter.eventually_iff] at horizontal
-    filter_upwards [Metric.ball_mem_nhds 0 hε,horizontal]
-    intro hre hre_eps hre_diff
+    -- -- condition on h.im
+    -- rw [Filter.eventually_iff] at vertical
+    -- filter_upwards [Metric.ball_mem_nhds 0 hε,vertical]
+    -- intro him him_eps him_diff
 
-    -- apply fundamental theorem of calculus to vertical part
-    have continuous_v : ContinuousAt (fun y:ℝ => f (z₀.re + hre + y*I)) z₀.im := by
-      sorry
-    have stronglymeasurable_v : StronglyMeasurableAtFilter (fun y:ℝ => f (z₀.re + hre + y*I)) (nhds z₀.im) := by
-      sorry
-    have vertical := deriv_of_horv z₀.im  continuous_v stronglymeasurable_v c hc
+    -- have : ‖((∫ (x : ℝ) in z₀.re..z₀.re + hre, f (↑x + ↑z₀.im * I)) +
+    --     I * ∫ (y : ℝ) in z₀.im..z₀.im + him, f (↑z₀.re + ↑hre + ↑y * I)) -
+    --     (↑hre + ↑him * I) * f z₀‖ ≤
+    --     ‖(∫ (x : ℝ) in z₀.re..z₀.re + hre, f (↑x + ↑z₀.im * I)) - hre * f z₀‖ +
+    --     ‖(∫ (y : ℝ) in z₀.im..z₀.im + him, f (↑z₀.re + ↑hre + ↑y * I) - ↑him * f (z₀+hre))‖
+    --     + ‖I* (f (z₀+hre) - f z₀)‖ := by
+    --   -- norm_add_le
+    --   sorry
 
-    -- condition on h.im
-    rw [Filter.eventually_iff] at vertical
-    filter_upwards [Metric.ball_mem_nhds 0 hε,vertical]
-    intro him him_eps him_diff
+    -- suffices hsp : ‖(∫ (x : ℝ) in z₀.re..z₀.re + hre, f (↑x + ↑z₀.im * I)) - hre * f z₀‖ +
+    --     ‖(∫ (y : ℝ) in z₀.im..z₀.im + him, f (↑z₀.re + ↑hre + ↑y * I) - ↑him * f (z₀+hre))‖
+    --     + ‖I* (f (z₀+hre) - f z₀)‖ ≤ c*‖hre + him*I‖
 
-    have : ‖((∫ (x : ℝ) in z₀.re..z₀.re + hre, f (↑x + ↑z₀.im * I)) +
-        I * ∫ (y : ℝ) in z₀.im..z₀.im + him, f (↑z₀.re + ↑hre + ↑y * I)) -
-        (↑hre + ↑him * I) * f z₀‖ ≤
-        ‖(∫ (x : ℝ) in z₀.re..z₀.re + hre, f (↑x + ↑z₀.im * I)) - hre * f z₀‖ +
-        ‖(∫ (y : ℝ) in z₀.im..z₀.im + him, f (↑z₀.re + ↑hre + ↑y * I) - ↑him * f (z₀+hre))‖
-        + ‖I* (f (z₀+hre) - f z₀)‖ := by
-      -- norm_add_le
-      sorry
-
-    suffices hsp : ‖(∫ (x : ℝ) in z₀.re..z₀.re + hre, f (↑x + ↑z₀.im * I)) - hre * f z₀‖ +
-        ‖(∫ (y : ℝ) in z₀.im..z₀.im + him, f (↑z₀.re + ↑hre + ↑y * I) - ↑him * f (z₀+hre))‖
-        + ‖I* (f (z₀+hre) - f z₀)‖ ≤ c*‖hre + him*I‖
-
-    · exact le_trans this hsp
-    · sorry
+    -- · exact le_trans this hsp
+    -- · sorry
 
 
 --  -- write f as f-f(z₀)+f(z₀)
@@ -494,15 +493,15 @@ lemma deriv_of_wedgeInt' {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: Cont
 
 
 
-  -- apply fundamental theorem of calculus to each part of the integral
-  have horint : Asymptotics.IsLittleO (𝓝 0) (fun h:ℂ ↦ ∫ x in z₀.re..z₀.re + h.re, (f (x + z₀.im * I) - f z₀)) (fun h => h) := by
-    have integrable : IntervalIntegrable (fun x:ℝ => f (x + z₀.im*I)-f z₀) z₀.re z₀.re+h.re
-  have verint : Asymptotics.IsLittleO (𝓝 0) (fun h:ℂ ↦ ∫ y in z₀.im..z₀.im + h.im, (f (z₀.re + h.re + y * I) - f z₀)) (fun h => h) := by
-    sorry
-  have verint' : Asymptotics.IsLittleO (𝓝 0) (fun h:ℂ ↦ I*∫ y in z₀.im..z₀.im + h.im, (f (z₀.re + h.re + y * I) - f z₀)) (fun h => h) :=
-    Asymptotics.IsLittleO.const_mul_left verint I
+  -- -- apply fundamental theorem of calculus to each part of the integral
+  -- have horint : Asymptotics.IsLittleO (𝓝 0) (fun h:ℂ ↦ ∫ x in z₀.re..z₀.re + h.re, (f (x + z₀.im * I) - f z₀)) (fun h => h) := by
+  --   have integrable : IntervalIntegrable (fun x:ℝ => f (x + z₀.im*I)-f z₀) z₀.re z₀.re+h.re
+  -- have verint : Asymptotics.IsLittleO (𝓝 0) (fun h:ℂ ↦ ∫ y in z₀.im..z₀.im + h.im, (f (z₀.re + h.re + y * I) - f z₀)) (fun h => h) := by
+  --   sorry
+  -- have verint' : Asymptotics.IsLittleO (𝓝 0) (fun h:ℂ ↦ I*∫ y in z₀.im..z₀.im + h.im, (f (z₀.re + h.re + y * I) - f z₀)) (fun h => h) :=
+  --   Asymptotics.IsLittleO.const_mul_left verint I
 
-  exact Asymptotics.IsLittleO.add horint verint'
+  -- exact Asymptotics.IsLittleO.add horint verint'
 
   --have : Asymptotics.IsLittleO (𝓝 0) (fun h ↦ f (z₀+h) - f z₀) (fun h ↦ (1:ℂ)) := by
   --  have := ContinuousOn.continuousAt hf (IsOpen.mem_nhds hU hz₀)
@@ -647,10 +646,6 @@ theorem hasPrimitives_of_disc (c : ℂ) {r : ℝ} (hr : 0 < r) : HasPrimitives (
   --     sorry
 
 
--- main theorem: holomorphic functions on simply connected open sets have primitives
-theorem HasPrimitivesOfSimplyConnected (U : Set ℂ) (hSc : SimplyConnectedSpace U) (hO : IsOpen U) :
-    HasPrimitives U := by
-  sorry
 
 
 
