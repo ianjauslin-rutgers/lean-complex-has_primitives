@@ -78,20 +78,16 @@ theorem horizontal_segment_eq (a₁ a₂ b : ℝ) : (fun x => ↑x + ↑b * I) '
   · intro hx
     simp only [ge_iff_le, mem_image] at hx
     obtain ⟨x₁, hx₁, hx₁'⟩ := hx
-    rw [← hx₁']
---    rw [← preimage_equivRealProd_prod]
-    rw [Set.mem_preimage, Set.mem_prod]
+    rw [← hx₁', Set.mem_preimage, Set.mem_prod]
     simp [hx₁]
   · intro hx
-    --rw [← preimage_equivRealProd_prod] at hx
     rw [Set.mem_preimage] at hx
     rw [Set.mem_image]
-    use x.re
     simp only [equivRealProd_apply, ge_iff_le, prod_singleton, mem_image, Prod.mk.injEq] at hx
     obtain ⟨x₁, hx₁, hx₁', hx₁''⟩ := hx
+    use x.re
     rw [← hx₁']
-    refine ⟨hx₁, ?_⟩
-    ext <;> simp [hx₁', hx₁'']
+    refine ⟨hx₁, by ext <;> simp [hx₁', hx₁'']⟩
 
 
 theorem vertical_segment_eq (a b₁ b₂ : ℝ) : (fun y => ↑a + ↑y * I) '' [[b₁, b₂]] = {a} ×ℂ [[b₁, b₂]] := by
@@ -101,8 +97,7 @@ theorem vertical_segment_eq (a b₁ b₂ : ℝ) : (fun y => ↑a + ↑y * I) '' 
   · intro hx
     simp only [ge_iff_le, mem_image] at hx
     obtain ⟨x₁, hx₁, hx₁'⟩ := hx
-    rw [← hx₁']
-    rw [Set.mem_preimage, Set.mem_prod]
+    rw [← hx₁', Set.mem_preimage, Set.mem_prod]
     simp [hx₁]
   · intro hx
     rw [Set.mem_preimage] at hx
