@@ -149,7 +149,6 @@ lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} (hr : 0 < r)
     (hf : VanishesOnRectanglesInDisc c r f) :
     ∀ᶠ (w : ℂ) in 𝓝 z,
       WedgeInt c w f - WedgeInt c z f = WedgeInt z w f := by
-  --simp only [Metric.mem_ball] at hz
   let r₁ := (r - dist z c) / 2
   have hr₁ : 0 < r₁
   · simp only [Metric.mem_ball] at hz
