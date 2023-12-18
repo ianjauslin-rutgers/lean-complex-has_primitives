@@ -49,14 +49,16 @@ theorem rectangle_in_convex {U : Set ℂ} (U_convex : Convex ℝ U) {z w : ℂ} 
   refine Set.insert_subset hz (Set.insert_subset hzw (Set.insert_subset hwz ?_))
   exact Set.singleton_subset_iff.mpr hw
 
-lemma corner_rectangle_in_disc {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metric.ball c r) :
+lemma corner_rectangle_in_disc {c : ℂ} {r : ℝ} {z : ℂ} (hz : z ∈ Metric.ball c r) :
     z.re + c.im * I ∈ Metric.ball c r := by
   simp only [Metric.mem_ball] at hz ⊢
   rw [Complex.dist_of_im_eq] <;> simp only [add_re, I_re, mul_zero, I_im, zero_add, add_im,
     add_zero, sub_self, mul_re, mul_one, ofReal_im, mul_im, ofReal_re]
   apply lt_of_le_of_lt ?_ hz
   rw [Complex.dist_eq_re_im, Real.dist_eq]
-  sorry
+  apply Real.le_sqrt_of_sq_le
+  simp only [_root_.sq_abs, le_add_iff_nonneg_right, ge_iff_le, sub_nonneg]
+  exact sq_nonneg _
 
 -- lemma corner_rectangle_in_disc' {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ} (hz : z ∈ Metric.ball c r) :
 --     c.re + z.im * I ∈ Metric.ball c r := by
@@ -79,9 +81,7 @@ theorem horizontal_segment_eq (a₁ a₂ b : ℝ) : (fun x => ↑x + ↑b * I) '
     rw [← hx₁']
 --    rw [← preimage_equivRealProd_prod]
     rw [Set.mem_preimage, Set.mem_prod]
-    simp only [equivRealProd_apply, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im,
-      mul_one, sub_self, add_zero, add_im, mul_im, zero_add, ge_iff_le, mem_singleton_iff, and_true]
-    exact hx₁
+    simp [hx₁]
   · intro hx
     --rw [← preimage_equivRealProd_prod] at hx
     rw [Set.mem_preimage] at hx
@@ -95,7 +95,23 @@ theorem horizontal_segment_eq (a₁ a₂ b : ℝ) : (fun x => ↑x + ↑b * I) '
 
 
 theorem vertical_segment_eq (a b₁ b₂ : ℝ) : (fun y => ↑a + ↑y * I) '' [[b₁, b₂]] = {a} ×ℂ [[b₁, b₂]] := by
-  sorry
+  rw [← preimage_equivRealProd_prod]
+  ext x
+  constructor
+  · intro hx
+    simp only [ge_iff_le, mem_image] at hx
+    obtain ⟨x₁, hx₁, hx₁'⟩ := hx
+    rw [← hx₁']
+    rw [Set.mem_preimage, Set.mem_prod]
+    simp [hx₁]
+  · intro hx
+    rw [Set.mem_preimage] at hx
+    rw [Set.mem_image]
+    use x.im
+    simp only [equivRealProd_apply, ge_iff_le, singleton_prod, mem_image, Prod.mk.injEq,
+      exists_eq_right_right] at hx
+    obtain ⟨x₁, hx₁, hx₁', hx₁''⟩ := hx
+    simp [x₁]
 
 
 
@@ -131,26 +147,31 @@ def VanishesOnRectanglesInDisc (c : ℂ) (r : ℝ) (f : ℂ → ℂ) : Prop :=
 lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} (hr : 0 < r) {z : ℂ}
     (hz : z ∈ Metric.ball c r) {f : ℂ → ℂ} (f_cont : ContinuousOn f (Metric.ball c r))
     (hf : VanishesOnRectanglesInDisc c r f) :
-    ∀ᶠ h in 𝓝 0,
-      WedgeInt c (z+h) f - WedgeInt c z f = WedgeInt z (z+h) f := by
+    ∀ᶠ (w : ℂ) in 𝓝 z,
+      WedgeInt c w f - WedgeInt c z f = WedgeInt z w f := by
   --simp only [Metric.mem_ball] at hz
-  have r₁ := (r - dist z c) / 2
-  have hr₁ : 0 < r₁ := by sorry
-  filter_upwards [Metric.ball_mem_nhds 0 hr₁]
-  intro h hh
-  have hzPlusH : z + h ∈ Metric.ball c r := by sorry
-  have z_ball : Metric.ball z r₁ ⊆ Metric.ball c r := by sorry
-  have hz_in_z_ball : z + h ∈ Metric.ball z r₁ := by sorry
---  simp only [Metric.mem_ball, dist_zero_right, norm_eq_abs] at hh
+  let r₁ := (r - dist z c) / 2
+  have hr₁ : 0 < r₁
+  · simp only [Metric.mem_ball] at hz
+    simp only [gt_iff_lt]
+    linarith
+  have z_ball : Metric.ball z r₁ ⊆ Metric.ball c r
+  · intro w hw
+    simp only [Metric.mem_ball] at hw hz ⊢
+    have := dist_triangle w z c
+    nlinarith
+  filter_upwards [Metric.ball_mem_nhds z hr₁]
+  intro w w_in_z_ball
+  have hzPlusH : w ∈ Metric.ball c r := Set.mem_of_subset_of_mem z_ball w_in_z_ball
   simp only [WedgeInt] --, add_re, ofReal_add, add_im, smul_eq_mul]
-  set intI := ∫ x : ℝ in c.re..(z + h).re, f (x + c.im * I)
-  set intII := I • ∫ y : ℝ in c.im..(z + h).im, f ((z+h).re + y * I)
+  set intI := ∫ x : ℝ in c.re..(w).re, f (x + c.im * I)
+  set intII := I • ∫ y : ℝ in c.im..w.im, f (w.re + y * I)
   set intIII := ∫ x : ℝ in c.re..z.re, f (x + c.im * I)
   set intIV := I • ∫ y : ℝ in c.im..z.im, f (z.re + y * I)
-  set intV := ∫ x : ℝ in z.re..(z + h).re, f (x + z.im * I)
-  set intVI := I • ∫ y : ℝ in z.im..(z + h).im, f ((z+h).re + y * I)
-  let intVII := ∫ x : ℝ in z.re..(z+h).re, f (x + c.im * I)
-  let intVIII := I • ∫ y : ℝ in c.im..z.im, f ((z+h).re + y * I)
+  set intV := ∫ x : ℝ in z.re..w.re, f (x + z.im * I)
+  set intVI := I • ∫ y : ℝ in z.im..w.im, f (w.re + y * I)
+  let intVII := ∫ x : ℝ in z.re..w.re, f (x + c.im * I)
+  let intVIII := I • ∫ y : ℝ in c.im..z.im, f (w.re + y * I)
   have integrableHoriz : ∀ a₁ a₂ b : ℝ, a₁ + b * I ∈ Metric.ball c r → a₂ + b * I ∈ Metric.ball c r →
     IntervalIntegrable (fun x => f (x + b * I)) MeasureTheory.volume a₁ a₂
   · intro a₁ a₂ b ha₁ ha₂
@@ -193,34 +214,34 @@ lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} (hr : 0 < r)
   have intIdecomp : intI = intIII + intVII  := by
     rw [intervalIntegral.integral_add_adjacent_intervals] <;> apply integrableHoriz
     · simp only [re_add_im, Metric.mem_ball, dist_self, hr]
-    · exact corner_rectangle_in_disc hr hz
-    · exact corner_rectangle_in_disc hr hz
-    · exact corner_rectangle_in_disc hr hzPlusH
+    · exact corner_rectangle_in_disc hz
+    · exact corner_rectangle_in_disc hz
+    · exact corner_rectangle_in_disc hzPlusH
   have intIIdecomp : intII = intVIII + intVI := by
     rw [← smul_add, intervalIntegral.integral_add_adjacent_intervals] <;> apply integrableVert
-    · exact corner_rectangle_in_disc hr hzPlusH
+    · exact corner_rectangle_in_disc hzPlusH
     · apply Set.mem_of_subset_of_mem z_ball
-      exact corner_rectangle_in_disc hr₁ hz_in_z_ball
+      exact corner_rectangle_in_disc w_in_z_ball
     · apply Set.mem_of_subset_of_mem z_ball
-      exact corner_rectangle_in_disc hr₁ hz_in_z_ball
+      exact corner_rectangle_in_disc w_in_z_ball
     · convert hzPlusH using 1
       ext <;> simp
   have rectZero : intVIII = - intVII + intV + intIV := by
     rw [← sub_eq_zero]
     have : intVII - intV + intVIII - intIV = 0 := by
-      convert hf (z.re + c.im * I) ((z+h).re + z.im * I) ?_ ?_ ?_ ?_ using 2
+      convert hf (z.re + c.im * I) (w.re + z.im * I) ?_ ?_ ?_ ?_ using 2
       · congr! 1
         · congr! 1
           · simp
           · simp
         · simp
       · simp
-      · exact corner_rectangle_in_disc hr hz
+      · exact corner_rectangle_in_disc hz
       · apply Set.mem_of_subset_of_mem z_ball
-        exact corner_rectangle_in_disc hr₁ hz_in_z_ball
+        exact corner_rectangle_in_disc w_in_z_ball
       · convert hz using 1
         ext <;> simp
-      · convert corner_rectangle_in_disc hr hzPlusH using 1
+      · convert corner_rectangle_in_disc hzPlusH using 1
         ext <;> simp
     rw [← this]
     ring
@@ -529,12 +550,31 @@ lemma deriv_of_wedgeInt' {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: Cont
 --   simp only [Set.mem_empty_iff_false, nhdsWithin_empty, map_sub, IsEmpty.forall_iff, forall_const, exists_const,
 --   forall_true_left]
 
+example (f g : ℂ → ℂ) (hf : ∀ᶠ (x:ℂ) in 𝓝 0, f x = 2) (hg : ∀ᶠ (x : ℂ) in 𝓝 0, g x = 3) : ∀ᶠ (x : ℂ) in 𝓝 0, f x * g x = 6 := by
+  filter_upwards [hf, hg]
+  intro x hf hg
+  rw [hf, hg]
+  ring
+
+theorem deriv_of_wedgeInt''' {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
+    (hf : ContinuousOn f (Metric.ball c r)) (hf₂ : VanishesOnRectanglesInDisc c r f)
+    {z : ℂ} (hz : z ∈ Metric.ball c r)
+    {ε : ℝ} (hε : 0 < ε) :
+    ∀ᶠ (w : ℂ) in 𝓝 z, ‖WedgeInt z w f - (w - z) * f z‖ ≤ ε * ‖w - z‖ := by
+  sorry
+
 theorem deriv_of_wedgeInt'' {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
     (hf : ContinuousOn f (Metric.ball c r)) (hf₂ : VanishesOnRectanglesInDisc c r f)
+    {z : ℂ} (hz : z ∈ Metric.ball c r)
     {ε : ℝ} (hε : 0 < ε) :
-    ∀ᶠ (w : ℂ) in 𝓝[Metric.ball c r] z, ‖WedgeInt c w f - WedgeInt c z f - (w - z) * (1 * f z)‖ ≤ ε * ‖w - z‖ := by
-
-  sorry
+    ∀ᶠ (w : ℂ) in 𝓝 z, ‖WedgeInt c w f - WedgeInt c z f - (w - z) * f z‖ ≤ ε * ‖w - z‖ := by
+  have diff_wedge := hf₂.diff_of_wedges hr hz hf
+  rw [Filter.eventually_iff] at diff_wedge
+  have := deriv_of_wedgeInt''' hr hf hf₂ hz hε
+  rw [Filter.eventually_iff] at this
+  filter_upwards [diff_wedge, this]
+  intro w hw hww
+  rwa [hw]
 
 theorem deriv_of_wedgeInt {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
     (hf : ContinuousOn f (Metric.ball c r)) (hf₂ : VanishesOnRectanglesInDisc c r f)
@@ -546,14 +586,16 @@ theorem deriv_of_wedgeInt {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
 theorem DifferentiableOn_WedgeInt {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
     (hf : ContinuousOn f (Metric.ball c r))
     (hf₂ : VanishesOnRectanglesInDisc c r f) : DifferentiableOn ℂ (fun z ↦ WedgeInt c z f) (Metric.ball c r) := by
-  intro z _
+  intro z hz
   use (ContinuousLinearMap.smulRight (1 : ℂ →L[ℂ] ℂ) (f z))
   rw [hasFDerivWithinAt_iff_hasDerivWithinAt]
   dsimp [HasDerivWithinAt, HasDerivAtFilter, HasFDerivAtFilter]
+  simp only [one_mul]
   rw [Asymptotics.IsLittleO_def]
-  intro _ h_ε
+  intro ε h_ε
   rw [Asymptotics.isBigOWith_iff]
-  exact deriv_of_wedgeInt'' hr hf hf₂ h_ε
+  apply eventually_nhdsWithin_of_eventually_nhds
+  exact deriv_of_wedgeInt'' hr hf hf₂ hz h_ε
 
 /-- Moreira's theorem -/
 theorem moreiras_theorem {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
