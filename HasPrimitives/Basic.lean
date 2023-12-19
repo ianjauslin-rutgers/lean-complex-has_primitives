@@ -110,9 +110,12 @@ theorem vertical_segment_eq (a b₁ b₂ : ℝ) : (fun y => ↑a + ↑y * I) '' 
 
 
 
--- From V. Beffara https://github.com/vbeffara/RMT4
+-- -- From V. Beffara https://github.com/vbeffara/RMT4
+-- def HasPrimitives (U : Set ℂ) : Prop :=
+--   ∀ f : ℂ → ℂ, DifferentiableOn ℂ f U → ∃ g : ℂ → ℂ, DifferentiableOn ℂ g U ∧ Set.EqOn (deriv g) f U
+
 def HasPrimitives (U : Set ℂ) : Prop :=
-  ∀ f : ℂ → ℂ, DifferentiableOn ℂ f U → ∃ g : ℂ → ℂ, DifferentiableOn ℂ g U ∧ Set.EqOn (deriv g) f U
+  ∀ f : ℂ → ℂ, DifferentiableOn ℂ f U → ∃ g : ℂ → ℂ, ∀ z ∈ U, HasDerivAt g (f z) z
 
 /-- The wedge integral from z to w of a function f -/
 noncomputable def WedgeInt (z w : ℂ) (f : ℂ → ℂ) : ℂ :=
@@ -564,7 +567,7 @@ theorem deriv_of_wedgeInt'' {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
   intro w hw hww
   rwa [hw]
 
-theorem deriv_of_wedgeInt {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
+theorem deriv_of_wedgeInt''''' {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
     (hf : ContinuousOn f (Metric.ball c r)) (hf₂ : VanishesOnRectanglesInDisc c r f)
     {z : ℂ} (hz : z ∈ Metric.ball c r) :
     deriv (fun z ↦ WedgeInt c z f) z = f z := by
@@ -592,21 +595,19 @@ theorem hasDerivWithinAt_of_nmem_closure {𝕜 : Type u} [NontriviallyNormedFiel
 HasDerivWithinAt f f' s x := by sorry
 
 
+theorem deriv_of_wedgeInt {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
+    (hf : ContinuousOn f (Metric.ball c r)) (hf₂ : VanishesOnRectanglesInDisc c r f)
+    {z : ℂ} (hz : z ∈ Metric.ball c r) :
+    HasDerivAt (fun z => WedgeInt c z f) (f z) z := by
+  sorry
+
 /-- Moreira's theorem -/
 theorem moreiras_theorem {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
     (hf : ContinuousOn f (Metric.ball c r))
     (hf₂ : VanishesOnRectanglesInDisc c r f) :
-    ∃ g : ℂ → ℂ, ∀ z ∈ (Metric.ball c r), HasDerivAt g (f z) z := by
-  use fun z ↦ WedgeInt c z f
-  intro z hz
+    ∃ g : ℂ → ℂ, ∀ z ∈ (Metric.ball c r), HasDerivAt g (f z) z :=
+  ⟨fun z ↦ WedgeInt c z f, fun z hz ↦ deriv_of_wedgeInt hr hf hf₂ hz⟩
 
-  sorry
-#exit
-
-
-    DifferentiableOn ℂ g (Metric.ball c r) ∧ Set.EqOn (deriv g) f (Metric.ball c r) :=
-  ⟨fun z ↦ WedgeInt c z f, DifferentiableOn_WedgeInt hr hf hf₂,
-    fun _ hz ↦ deriv_of_wedgeInt hr hf hf₂ hz⟩
 
 theorem vanishesOnRectangles_of_holomorphic {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
     (hf : DifferentiableOn ℂ f (Metric.ball c r)) :
