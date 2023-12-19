@@ -63,6 +63,10 @@ def Homotopic (t₁ t₂ : ℝ) (γ₀ γ₁ : ℝ → ℂ) (U : Set ℂ) : Prop
     (∀ t ∈ [[t₁, t₂]], γ ⟨0, t⟩ = γ₀ t) ∧ (∀ t ∈ [[t₁, t₂]], γ ⟨1, t⟩ = γ₁ t) ∧ -- starts at γ₀ and ends at γ₁
     (∀ s ∈ Set.Icc 0 1, γ ⟨s, t₁⟩ = γ₀ t₁) ∧ (∀ s ∈ Set.Icc 0 1, γ ⟨s, t₂⟩ = γ₁ t₂) -- fixed endpoints
 
+theorem Homotopic.symm (t₁ t₂ : ℝ) (γ₀ γ₁ : ℝ → ℂ) (U : Set ℂ)
+    (h : Homotopic t₁ t₂ γ₀ γ₁ U) : Homotopic t₂ t₁ γ₀ γ₁ U := by
+  sorry
+
 /-- Two curves are `DifferentiablyHomotopic` in `U` if there exists a homotopy through differentiable curves -/
 def DifferentiablyHomotopic (t₁ t₂ : ℝ) (γ₀ γ₁ : ℝ → ℂ) (U : Set ℂ) : Prop := ∃ (γ : ℝ × ℝ → ℂ),
     (γ '' (Set.Icc 0 1 ×ˢ [[t₁, t₂]]) ⊆ U) ∧ -- image is contained in U
@@ -71,15 +75,14 @@ def DifferentiablyHomotopic (t₁ t₂ : ℝ) (γ₀ γ₁ : ℝ → ℂ) (U : S
     (∀ t ∈ [[t₁, t₂]], γ ⟨0, t⟩ = γ₀ t) ∧ (∀ t ∈ [[t₁, t₂]], γ ⟨1, t⟩ = γ₁ t) ∧ -- starts at γ₀ and ends at γ₁
     (∀ s ∈ Set.Icc 0 1, γ ⟨s, t₁⟩ = γ₀ t₁) ∧ (∀ s ∈ Set.Icc 0 1, γ ⟨s, t₂⟩ = γ₁ t₂) -- fixed endpoints
 
-theorem DifferentiablyHomotopic_of_OpenHomotopic {t₁ t₂ : ℝ} {γ₀ γ₁ : ℝ → ℂ} {U : Set ℂ} (U_open : IsOpen U)
-    (h : Homotopic t₁ t₂ γ₀ γ₁ U) : DifferentiablyHomotopic t₁ t₂ γ₀ γ₁ U := by
-  sorry
 
 /-- If two curves are `DiffHomotopic`, then the `CurvInt` of a holomorphic function over the two curves is the same. -/
-theorem curvInt_eq_of_diffHomotopic {t₁ t₂ : ℝ} (ht : t₁ ≤ t₂) {γ₀ γ₁ : ℝ → ℂ} {f : ℂ → ℂ} {U : Set ℂ}
-    (U_open : IsOpen U) (hom : Homotopic t₁ t₂ γ₀ γ₁ U)
+theorem curvInt_eq_of_diffHomotopic {t₁ t₂ : ℝ} {γ₀ γ₁ : ℝ → ℂ} {f : ℂ → ℂ} {U : Set ℂ}
+    (hom : DifferentiablyHomotopic t₁ t₂ γ₀ γ₁ U)
     (f_holo : DifferentiableOn ℂ f U) :
     CurvInt t₁ t₂ f γ₀ = CurvInt t₁ t₂ f γ₁ := by
+  sorry
+#exit
   obtain ⟨γ, hU, hcont, hdiff, h₀, h₁, h₂, h₃⟩ := DifferentiablyHomotopic_of_OpenHomotopic U_open hom
   have icc_is : [[t₁, t₂]] = Set.Icc t₁ t₂ := by simp [ht]
   let K := γ '' (Set.Icc 0 1 ×ˢ [[t₁, t₂]])
@@ -88,11 +91,27 @@ theorem curvInt_eq_of_diffHomotopic {t₁ t₂ : ℝ} (ht : t₁ ≤ t₂) {γ�
     refine IsCompact.prod ?_ (isCompact_uIcc (a := t₁) (b := t₂))
     have := isCompact_uIcc (a := (0:ℝ)) (b := 1)
     rwa [(by simp : [[(0 : ℝ), 1]] = Set.Icc 0 1)] at this
+  have : ∃ ε > 0, ∀ z ∈ K, Metric.ball z (3 * ε) ⊆ U := sorry
+  obtain ⟨ε, ε_pos, ε_ballWithinU⟩ := this
+  have : ∃ δ > 0, ∀ s₁ ∈ Set.Icc 0 1, ∀ s₂ ∈ Set.Icc 0 1, ∀ t ∈ [[t₁, t₂]], |s₁ - s₂| < δ →
+    Complex.abs (γ ⟨s₁, t⟩ - γ ⟨s₂, t⟩) < ε := sorry
+  obtain ⟨δ, δ_pos, δ_UnifCont⟩ := this
 
 
   sorry
 
 #exit
+
+theorem DifferentiablyHomotopic_of_OpenHomotopic {t₁ t₂ : ℝ} {γ₀ γ₁ : ℝ → ℂ} {U : Set ℂ} (U_open : IsOpen U) (γ₀_diffble : DifferentiableOn ℝ γ₀ (Set.Ioo t₁ t₂))
+(γ₁_diffble : DifferentiableOn ℝ γ₁ (Set.Ioo t₁ t₂))
+    (h : Homotopic t₁ t₂ γ₀ γ₁ U) : DifferentiablyHomotopic t₁ t₂ γ₀ γ₁ U := by
+  sorry
+
+
+theorem curvInt_eq_of_homotopic {t₁ t₂ : ℝ} {γ₀ γ₁ : ℝ → ℂ} {f : ℂ → ℂ} {U : Set ℂ}
+    (U_open : IsOpen U) (hom : Homotopic t₁ t₂ γ₀ γ₁ U)
+    (f_holo : DifferentiableOn ℂ f U) :
+
 
 -- main theorem: holomorphic functions on simply connected open sets have primitives
 theorem HasPrimitivesOfSimplyConnected (U : Set ℂ) (hSc : SimplyConnectedSpace U) (hO : IsOpen U) :

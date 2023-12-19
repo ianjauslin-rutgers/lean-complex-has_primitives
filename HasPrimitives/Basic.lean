@@ -242,9 +242,7 @@ lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} (hr : 0 < r)
         ext <;> simp
     rw [← this]
     ring
-  rw [intIdecomp]
-  rw [intIIdecomp]
-  rw [rectZero]
+  rw [intIdecomp, intIIdecomp, rectZero]
   ring
 
 
@@ -541,11 +539,11 @@ lemma deriv_of_wedgeInt' {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: Cont
 --   simp only [Set.mem_empty_iff_false, nhdsWithin_empty, map_sub, IsEmpty.forall_iff, forall_const, exists_const,
 --   forall_true_left]
 
-example (f g : ℂ → ℂ) (hf : ∀ᶠ (x:ℂ) in 𝓝 0, f x = 2) (hg : ∀ᶠ (x : ℂ) in 𝓝 0, g x = 3) : ∀ᶠ (x : ℂ) in 𝓝 0, f x * g x = 6 := by
-  filter_upwards [hf, hg]
-  intro x hf hg
-  rw [hf, hg]
-  ring
+-- example (f g : ℂ → ℂ) (hf : ∀ᶠ (x:ℂ) in 𝓝 0, f x = 2) (hg : ∀ᶠ (x : ℂ) in 𝓝 0, g x = 3) : ∀ᶠ (x : ℂ) in 𝓝 0, f x * g x = 6 := by
+--   filter_upwards [hf, hg]
+--   intro x hf hg
+--   rw [hf, hg]
+--   ring
 
 theorem deriv_of_wedgeInt''' {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
     (hf : ContinuousOn f (Metric.ball c r)) (hf₂ : VanishesOnRectanglesInDisc c r f)
@@ -574,19 +572,19 @@ theorem deriv_of_wedgeInt''''' {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ
   dsimp [deriv]
   sorry
 
-theorem DifferentiableOn_WedgeInt {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
-    (hf : ContinuousOn f (Metric.ball c r))
-    (hf₂ : VanishesOnRectanglesInDisc c r f) : DifferentiableOn ℂ (fun z ↦ WedgeInt c z f) (Metric.ball c r) := by
-  intro z hz
-  use (ContinuousLinearMap.smulRight (1 : ℂ →L[ℂ] ℂ) (f z))
-  rw [hasFDerivWithinAt_iff_hasDerivWithinAt]
-  dsimp [HasDerivWithinAt, HasDerivAtFilter, HasFDerivAtFilter]
-  simp only [one_mul]
-  rw [Asymptotics.IsLittleO_def]
-  intro ε h_ε
-  rw [Asymptotics.isBigOWith_iff]
-  apply eventually_nhdsWithin_of_eventually_nhds
-  exact deriv_of_wedgeInt'' hr hf hf₂ hz h_ε
+-- theorem DifferentiableOn_WedgeInt {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
+--     (hf : ContinuousOn f (Metric.ball c r))
+--     (hf₂ : VanishesOnRectanglesInDisc c r f) : DifferentiableOn ℂ (fun z ↦ WedgeInt c z f) (Metric.ball c r) := by
+--   intro z hz
+--   use (ContinuousLinearMap.smulRight (1 : ℂ →L[ℂ] ℂ) (f z))
+--   rw [hasFDerivWithinAt_iff_hasDerivWithinAt]
+--   dsimp [HasDerivWithinAt, HasDerivAtFilter, HasFDerivAtFilter]
+--   simp only [one_mul]
+--   rw [Asymptotics.IsLittleO_def]
+--   intro ε h_ε
+--   rw [Asymptotics.isBigOWith_iff]
+--   apply eventually_nhdsWithin_of_eventually_nhds
+--   exact deriv_of_wedgeInt'' hr hf hf₂ hz h_ε
 
 
 -- ADDING 12/18/23 from Heather
@@ -598,21 +596,30 @@ HasDerivWithinAt f f' s x := by sorry
 theorem deriv_of_wedgeInt {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
     (hf : ContinuousOn f (Metric.ball c r)) (hf₂ : VanishesOnRectanglesInDisc c r f)
     {z : ℂ} (hz : z ∈ Metric.ball c r) :
-    HasDerivAt (fun z => WedgeInt c z f) (f z) z := by
+    HasDerivAt (fun w => WedgeInt c w f) (f z) z := by
   sorry
 
-/-- Moreira's theorem -/
+/-- Moreira's theorem
+/%%
+This is Moreira's theorem.
+\begin {theorem}
+\label {moreira}
+Let $f$ be a continuous function on a disc $D(c,r)$, and suppose that $f$ vanishes on rectangles in $D(c,r)$. Then $f$ has a primitive on $D(c,r)$.
+\end {theorem}
+%%/
+-/
 theorem moreiras_theorem {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
     (hf : ContinuousOn f (Metric.ball c r))
     (hf₂ : VanishesOnRectanglesInDisc c r f) :
     ∃ g : ℂ → ℂ, ∀ z ∈ (Metric.ball c r), HasDerivAt g (f z) z :=
-  ⟨fun z ↦ WedgeInt c z f, fun z hz ↦ deriv_of_wedgeInt hr hf hf₂ hz⟩
+  ⟨fun z ↦ WedgeInt c z f, fun _ hz ↦ deriv_of_wedgeInt hr hf hf₂ hz⟩
 
 
 theorem vanishesOnRectangles_of_holomorphic {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
     (hf : DifferentiableOn ℂ f (Metric.ball c r)) :
     VanishesOnRectanglesInDisc c r f := by
   intro z w hz hw hz' hw'
+  --%% Given a rectangle in the disc, we want to show that the integral over the rectangle is zero.
   convert integral_boundary_rect_eq_zero_of_differentiable_on_off_countable f z w ∅ ?_ ?_ ?_ using 4
   · simp
   · apply (hf.mono _).continuousOn
