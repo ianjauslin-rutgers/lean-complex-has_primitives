@@ -48,7 +48,7 @@ theorem intervalIntegral.integral_eq_sub_of_hasDerivAt_of_le' {E : Type*} [Norme
 ∫ (y : ℝ) in a..b, f' y = f b - f a := by sorry
 
 
-theorem curvInt_eval_of_primitive {t₁ t₂ : ℝ} {γ : ℝ → ℂ} {f F : ℂ → ℂ} {U : Set ℂ}
+theorem curvInt_eval_of_primitive {t₁ t₂ : ℝ} (ht : t₁ ≤ t₂) {γ : ℝ → ℂ} {f F : ℂ → ℂ} {U : Set ℂ}
     (U_open : IsOpen U) (γ_in_U : ∀ t, t ∈ [[t₁, t₂]] → γ t ∈ U)
     (F_holo : DifferentiableOn ℂ F U)
     (F_prim : Set.EqOn (deriv F) f U)
