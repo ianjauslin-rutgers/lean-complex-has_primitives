@@ -1,4 +1,5 @@
 import HasPrimitives.Basic
+import Init.Prelude
 
 open scoped Interval
 
@@ -81,9 +82,9 @@ theorem curvInt_eq_of_diffHomotopic {t₁ t₂ : ℝ} {γ₀ γ₁ : ℝ → ℂ
     (hom : DifferentiablyHomotopic t₁ t₂ γ₀ γ₁ U)
     (f_holo : DifferentiableOn ℂ f U) :
     CurvInt t₁ t₂ f γ₀ = CurvInt t₁ t₂ f γ₁ := by
-  sorry
-#exit
-  obtain ⟨γ, hU, hcont, hdiff, h₀, h₁, h₂, h₃⟩ := DifferentiablyHomotopic_of_OpenHomotopic U_open hom
+  wlog ht : t₁ ≤ t₂
+  · sorry
+  obtain ⟨γ, hU, hcont, hdiff, h₀, h₁, h₂, h₃⟩ := hom
   have icc_is : [[t₁, t₂]] = Set.Icc t₁ t₂ := by simp [ht]
   let K := γ '' (Set.Icc 0 1 ×ˢ [[t₁, t₂]])
   have K_cpt : IsCompact K
@@ -96,7 +97,27 @@ theorem curvInt_eq_of_diffHomotopic {t₁ t₂ : ℝ} {γ₀ γ₁ : ℝ → ℂ
   have : ∃ δ > 0, ∀ s₁ ∈ Set.Icc 0 1, ∀ s₂ ∈ Set.Icc 0 1, ∀ t ∈ [[t₁, t₂]], |s₁ - s₂| < δ →
     Complex.abs (γ ⟨s₁, t⟩ - γ ⟨s₂, t⟩) < ε := sorry
   obtain ⟨δ, δ_pos, δ_UnifCont⟩ := this
+  suffices : ∀ s₁ ∈ Set.Icc 0 1, ∀ s₂ ∈ Set.Icc 0 1, |s₁ - s₂| < δ → CurvInt t₁ t₂ f (fun t ↦ γ ⟨s₁, t⟩) = CurvInt t₁ t₂ f (fun t ↦ γ ⟨s₂,t⟩)
+  · have : ∃ s : ℕ → ℝ, ∃ N, s 0 = 0 ∧ s N = 1 ∧
+      ∀ i < N, s i ∈ Set.Icc 0 1 ∧ |s i - s (i+1)| < δ := sorry
+    obtain ⟨s, N, s₀, s₁, s_diff⟩ := this
+    have : ∀ i ≤ N, CurvInt t₁ t₂ f (fun t ↦ γ ⟨s 0, t⟩) = CurvInt t₁ t₂ f (fun t ↦ γ ⟨s i, t⟩) := sorry
+    convert this N (by simp) using 1
+    · rw [s₀]
 
+
+
+#exit
+    obtain ⟨s, N, s₀, s₁, s_diff⟩ := this
+    have : ∀ i ∈ Fin N, CurvInt t₁ t₂ f (fun t ↦ γ ⟨s i, t⟩) = CurvInt t₁ t₂ f (fun t ↦ γ ⟨s (i+1),t⟩)
+    · intro i hi
+      exact this (s i) (Set.mem_Icc.mpr ⟨s_diff i hi, s_diff (i+1) (Fin.succ_mem hi)⟩) (s (i+1)) (Set.mem_Icc.mpr ⟨s_diff i hi, s_diff (i+1) (Fin.succ_mem hi)⟩)
+    rw [← Fin.sum_const_zero (CurvInt t₁ t₂ f (fun t ↦ γ ⟨s 0, t⟩))]
+    simp only [Fin.sum_range_succ, this]
+#exit
+    rw [← h₀, ← h₁]
+    exact this 0 (by simp) 1 (by simp) (by linarith)
+  ·
 
   sorry
 
