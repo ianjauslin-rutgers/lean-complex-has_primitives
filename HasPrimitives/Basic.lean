@@ -1,25 +1,10 @@
-import Mathlib.AlgebraicTopology.FundamentalGroupoid.SimplyConnected
-import Mathlib.Analysis.Calculus.Deriv.Basic
-import Mathlib.Analysis.Complex.Basic
-import Mathlib.Analysis.Convex.Basic
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
-import Mathlib.MeasureTheory.Integral.IntervalIntegral
 import Mathlib.Analysis.Complex.CauchyIntegral
-import Mathlib.Analysis.Convex.Hull
-import Mathlib.Analysis.Convex.Combination
-import Mathlib.Data.Complex.Module
-
--- Is this needed??
--- import Mathlib.Tactic.LibrarySearch
 
 open Complex Topology Set
 
--- Is this needed??
---set_option autoImplicit false
 set_option autoImplicit true
 
 open scoped Interval
-
 
 namespace Complex
 -- Thanks to Yuri Kudryashov for the first three below:

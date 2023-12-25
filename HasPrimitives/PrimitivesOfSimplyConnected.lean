@@ -1,5 +1,4 @@
 import HasPrimitives.Basic
-import Init.Prelude
 
 open scoped Interval
 
@@ -104,6 +103,9 @@ theorem curvInt_eq_of_diffHomotopic {t₁ t₂ : ℝ} {γ₀ γ₁ : ℝ → ℂ
     have : ∀ i ≤ N, CurvInt t₁ t₂ f (fun t ↦ γ ⟨s 0, t⟩) = CurvInt t₁ t₂ f (fun t ↦ γ ⟨s i, t⟩) := sorry
     convert this N (by simp) using 1
     · rw [s₀]
+      sorry
+    sorry
+  sorry
 
 
 
