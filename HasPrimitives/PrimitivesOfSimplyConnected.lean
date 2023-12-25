@@ -35,8 +35,9 @@ lemma uIoo_eqM_uIcc (a b : ℝ) : Set.uIoo a b =ᵐ[MeasureTheory.volume] Set.uI
 
 -- move near `intervalIntegral.integral_eq_sub_of_hasDerivAt_of_le`
 theorem intervalIntegral.integral_eq_sub_of_hasDerivAt_of_le' {E : Type*} [NormedAddCommGroup E] [CompleteSpace E] [NormedSpace ℝ E] {f : ℝ → E} {f' : ℝ → E} {a : ℝ} {b : ℝ} (hab : a ≤ b) (hcont : ContinuousOn f (Set.Icc a b)) (hderiv : ∀ x ∈ Set.Ioo a b, HasDerivAt f (f' x) x) (hint : IntervalIntegrable f' MeasureTheory.volume a b) :
-∫ (y : ℝ) in a..b, f' y = f b - f a := by sorry
-
+∫ (y : ℝ) in a..b, f' y = f b - f a :=
+    integral_eq_sub_of_hasDeriv_right_of_le hab hcont
+      (fun x hx ↦ (hderiv x hx).hasDerivWithinAt) hint
 
 theorem curvInt_eval_of_primitive {t₁ t₂ : ℝ} (ht : t₁ ≤ t₂) {γ : ℝ → ℂ} {f F : ℂ → ℂ} {U : Set ℂ}
     (U_open : IsOpen U) (γ_in_U : ∀ t, t ∈ Set.Icc t₁ t₂ → γ t ∈ U)
