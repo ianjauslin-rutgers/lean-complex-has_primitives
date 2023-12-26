@@ -1,38 +1,51 @@
 import HasPrimitives.Basic
+import Mathlib.AlgebraicTopology.FundamentalGroupoid.SimplyConnected
 
 open Set
 
 open scoped Interval
 
+/-- Given a function `f` and curve `γ`, `CurvInt` is the integral from `t₁` to `t₂` of
+  `f (γ t) * γ'(t)`. -/
 noncomputable def CurvInt (t₁ t₂ : ℝ) (f : ℂ → ℂ) (γ : ℝ → ℂ) : ℂ :=
    ∫ t in t₁..t₂, deriv γ t • f (γ t)
 
 -- TO DO: move to `Mathlib.Data.Intervals.UnorderedInterval` (Yael add API?)
-def uIoo {α : Type*} [LinearOrder α]  : α → α → Set α := fun a b => Ioo (min a b) (max a b)
+def uIoo {α : Type*} [LinearOrder α]  : α → α → Set α := fun a b => Ioo (a ⊓ b) (a ⊔ b)
 
 -- TO DO: move to `Mathlib.Data.Intervals.UnorderedInterval` (Yael add API?)
-theorem uIoo_comm {α : Type*} [LinearOrder α] [Lattice α] (a : α) (b : α) : uIoo a b = uIoo b a := sorry
+theorem uIoo_comm {α : Type*} [LinearOrder α] [Lattice α] (a : α) (b : α) :
+    uIoo a b = uIoo b a := by
+  sorry
+  -- dsimp [uIoo]
+  -- rw [inf_comm (a := a) (b := b), sup_comm]
+  --   --, inf_comm, sup_comm]
 
--- TO DO: move to `Mathlib.Data.Intervals.UnorderedInterval` (Yael add API?)
-theorem uIoo_of_le {α : Type*} [LinearOrder α] [Lattice α] {a : α} {b : α} (h : a ≤ b) :
-    uIoo a b = Ioo a b := sorry
 
--- an open interval is equal to a closed one up to measure zero
-lemma uIoo_eqM_uIcc (a b : ℝ) : uIoo a b =ᵐ[MeasureTheory.volume] uIcc a b := by
-  wlog h : a ≤ b
-  · convert this b a (by linarith) using 1
-    · rw [uIoo_comm]
-    · rw [uIcc_comm]
-  rw [uIcc_of_le h, uIoo_of_le h]
-  refine MeasureTheory.ae_eq_set.mpr ?_
-  constructor
-  · -- convert volume of empty is zero
-    convert MeasureTheory.measure_empty using 2
-    refine diff_eq_empty.mpr ?h.e'_2.h.e'_3.a
-    exact Ioo_subset_Icc_self
-  · rw [Icc_diff_Ioo_same h]
-    refine Finite.measure_zero ?right.h MeasureTheory.volume
-    exact toFinite {a, b}
+-- -- TO DO: move to `Mathlib.Data.Intervals.UnorderedInterval` (Yael add API?)
+-- --@[simp]
+-- lemma uIoo_of_le {α : Type*} [LinearOrder α] [Lattice α] {a : α} {b : α} (h : a ≤ b) :
+--     uIoo a b = Ioo a b := by
+--   simp [uIoo, inf_eq_left.mpr h, sup_eq_right.mpr h]
+--   --simp [uIoo, h, inf_eq_left.mpr h, sup_eq_right.mpr h]
+-- #exit
+
+-- -- an open interval is equal to a closed one up to measure zero
+-- lemma uIoo_eqM_uIcc (a b : ℝ) : uIoo a b =ᵐ[MeasureTheory.volume] uIcc a b := by
+--   wlog h : a ≤ b
+--   · convert this b a (by linarith) using 1
+--     · rw [uIoo_comm]
+--     · rw [uIcc_comm]
+--   rw [uIcc_of_le h, uIoo_of_le h]
+--   refine MeasureTheory.ae_eq_set.mpr ?_
+--   constructor
+--   · -- convert volume of empty is zero
+--     convert MeasureTheory.measure_empty using 2
+--     refine diff_eq_empty.mpr ?h.e'_2.h.e'_3.a
+--     exact Ioo_subset_Icc_self
+--   · rw [Icc_diff_Ioo_same h]
+--     refine Finite.measure_zero ?right.h MeasureTheory.volume
+--     exact toFinite {a, b}
 
 /-- If a function `f` on an open domain `U` has a primitive, then it is holomorphic. -/
 theorem holomorphic_of_primitive {f F : ℂ → ℂ} {U : Set ℂ} (U_open : IsOpen U)
@@ -51,6 +64,8 @@ theorem intervalIntegral.integral_eq_sub_of_hasDerivAt_of_le' {E : Type*} [Norme
       (fun x hx ↦ (hderiv x hx).hasDerivWithinAt) hInt
 
 -- idea: try to use `[[t₁, t₂]]` as much as possible (even though `t₁ ≤ t₂` is known)
+/-- Main theorem: if `f` has primitive `F` and `γ` is continuously differentiable in `U`, then
+  `∫ t in t₁..t₂, f (γ t) * γ'(t) dt = F (γ t₂) - F (γ t₁)`. -/
 theorem curvInt_eval_of_primitive {t₁ t₂ : ℝ} (ht : t₁ ≤ t₂) {γ γ' : ℝ → ℂ} {f F : ℂ → ℂ}
     {U : Set ℂ} (U_open : IsOpen U) (γ_in_U : ∀ t, t ∈ [[t₁, t₂]] → γ t ∈ U)
     (F_prim : ∀ z ∈ U, HasDerivAt F (f z) z)
@@ -141,34 +156,45 @@ theorem curvInt_eq_of_diffHomotopic {t₁ t₂ : ℝ} {γ₀ γ₁ : ℝ → ℂ
   have : ∃ δ > 0, ∀ s₁ ∈ Icc 0 1, ∀ s₂ ∈ Icc 0 1, ∀ t ∈ [[t₁, t₂]], |s₁ - s₂| < δ →
     Complex.abs (γ ⟨s₁, t⟩ - γ ⟨s₂, t⟩) < ε := sorry
   obtain ⟨δ, δ_pos, δ_UnifCont⟩ := this
-  suffices : ∀ s₁ ∈ Icc 0 1, ∀ s₂ ∈ Icc 0 1, |s₁ - s₂| < δ → CurvInt t₁ t₂ f (fun t ↦ γ ⟨s₁, t⟩) = CurvInt t₁ t₂ f (fun t ↦ γ ⟨s₂,t⟩)
+  suffices : ∀ s₁ ∈ Icc 0 1, ∀ s₂ ∈ Icc 0 1, |s₁ - s₂| < δ →
+    CurvInt t₁ t₂ f (fun t ↦ γ ⟨s₁, t⟩) = CurvInt t₁ t₂ f (fun t ↦ γ ⟨s₂,t⟩)
   · have : ∃ s : ℕ → ℝ, ∃ N, s 0 = 0 ∧ s N = 1 ∧
       ∀ i < N, s i ∈ Icc 0 1 ∧ |s i - s (i+1)| < δ := sorry
     obtain ⟨s, N, s₀, s₁, s_diff⟩ := this
     have : ∀ i ≤ N, CurvInt t₁ t₂ f (fun t ↦ γ ⟨s 0, t⟩) = CurvInt t₁ t₂ f (fun t ↦ γ ⟨s i, t⟩) := sorry
     convert this N (by simp) using 1
     · rw [s₀]
+      apply intervalIntegral.integral_congr
+      intro t ht'
+      simp_rw [h₀ t ht']
+      congr! 1
       sorry
-    sorry
-  sorry
+    · rw [s₁]
+      apply intervalIntegral.integral_congr
+      intro t ht'
+      simp_rw [h₁ t ht']
+      congr! 1
+      sorry
+  · intro s₁ hs₁ s₂ hs₂ hdiff
+    sorry -- main Stein-Shakarchi argument p. 95
 
 
 
-#exit
-    obtain ⟨s, N, s₀, s₁, s_diff⟩ := this
-    have : ∀ i ∈ Fin N, CurvInt t₁ t₂ f (fun t ↦ γ ⟨s i, t⟩) = CurvInt t₁ t₂ f (fun t ↦ γ ⟨s (i+1),t⟩)
-    · intro i hi
-      exact this (s i) (mem_Icc.mpr ⟨s_diff i hi, s_diff (i+1) (Fin.succ_mem hi)⟩) (s (i+1)) (mem_Icc.mpr ⟨s_diff i hi, s_diff (i+1) (Fin.succ_mem hi)⟩)
-    rw [← Fin.sum_const_zero (CurvInt t₁ t₂ f (fun t ↦ γ ⟨s 0, t⟩))]
-    simp only [Fin.sum_range_succ, this]
-#exit
-    rw [← h₀, ← h₁]
-    exact this 0 (by simp) 1 (by simp) (by linarith)
-  ·
+-- #exit
+--     obtain ⟨s, N, s₀, s₁, s_diff⟩ := this
+--     have : ∀ i ∈ Fin N, CurvInt t₁ t₂ f (fun t ↦ γ ⟨s i, t⟩) = CurvInt t₁ t₂ f (fun t ↦ γ ⟨s (i+1),t⟩)
+--     · intro i hi
+--       exact this (s i) (mem_Icc.mpr ⟨s_diff i hi, s_diff (i+1) (Fin.succ_mem hi)⟩) (s (i+1)) (mem_Icc.mpr ⟨s_diff i hi, s_diff (i+1) (Fin.succ_mem hi)⟩)
+--     rw [← Fin.sum_const_zero (CurvInt t₁ t₂ f (fun t ↦ γ ⟨s 0, t⟩))]
+--     simp only [Fin.sum_range_succ, this]
+-- #exit
+--     rw [← h₀, ← h₁]
+--     exact this 0 (by simp) 1 (by simp) (by linarith)
+--   ·
 
-  sorry
+--   sorry
 
-#exit
+-- #exit
 
 theorem DifferentiablyHomotopic_of_OpenHomotopic {t₁ t₂ : ℝ} {γ₀ γ₁ : ℝ → ℂ} {U : Set ℂ} (U_open : IsOpen U) (γ₀_diffble : DifferentiableOn ℝ γ₀ (Ioo t₁ t₂))
 (γ₁_diffble : DifferentiableOn ℝ γ₁ (Ioo t₁ t₂))
@@ -178,7 +204,12 @@ theorem DifferentiablyHomotopic_of_OpenHomotopic {t₁ t₂ : ℝ} {γ₀ γ₁ 
 
 theorem curvInt_eq_of_homotopic {t₁ t₂ : ℝ} {γ₀ γ₁ : ℝ → ℂ} {f : ℂ → ℂ} {U : Set ℂ}
     (U_open : IsOpen U) (hom : Homotopic t₁ t₂ γ₀ γ₁ U)
+    (γ₀_diffble : DifferentiableOn ℝ γ₀ (Ioo t₁ t₂))
+    (γ₁_diffble : DifferentiableOn ℝ γ₁ (Ioo t₁ t₂))
     (f_holo : DifferentiableOn ℂ f U) :
+    CurvInt t₁ t₂ f γ₀ = CurvInt t₁ t₂ f γ₁ :=
+  curvInt_eq_of_diffHomotopic (DifferentiablyHomotopic_of_OpenHomotopic
+    U_open γ₀_diffble γ₁_diffble hom) f_holo
 
 
 -- main theorem: holomorphic functions on simply connected open sets have primitives
