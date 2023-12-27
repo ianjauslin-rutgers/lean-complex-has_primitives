@@ -1,7 +1,7 @@
 import HasPrimitives.Basic
 import Mathlib.AlgebraicTopology.FundamentalGroupoid.SimplyConnected
 
-open Set
+open Set BigOperators
 
 open scoped Interval
 
@@ -141,43 +141,96 @@ theorem curvInt_eq_of_diffHomotopic {t₁ t₂ : ℝ} {γ₀ γ₁ : ℝ → ℂ
     (hom : DifferentiablyHomotopic t₁ t₂ γ₀ γ₁ U)
     (f_holo : DifferentiableOn ℂ f U) :
     CurvInt t₁ t₂ f γ₀ = CurvInt t₁ t₂ f γ₁ := by
+  -- can assume `t₁ ≤ t₂`
   wlog ht : t₁ ≤ t₂
   · sorry
-  obtain ⟨γ, hU, hcont, hdiff, h₀, h₁, h₂, h₃⟩ := hom
+  -- get a homotopy `γ` through differentiable curves
+  obtain ⟨γ, hU, hcont, hdiff, h_start_γ₀, h_end_γ₁, h_start_t, h_end_t⟩ := hom
   have icc_is : [[t₁, t₂]] = Icc t₁ t₂ := by simp [ht]
+  -- the image of `γ`, called `K`, is compact
   let K := γ '' (Icc 0 1 ×ˢ [[t₁, t₂]])
   have K_cpt : IsCompact K
   · refine IsCompact.image_of_continuousOn ?hK.hs hcont
     refine IsCompact.prod ?_ (isCompact_uIcc (a := t₁) (b := t₂))
     have := isCompact_uIcc (a := (0:ℝ)) (b := 1)
     rwa [(by simp : [[(0 : ℝ), 1]] = Icc 0 1)] at this
+  -- fix an `ε` so that all `z ∈ K` are at least `3 * ε` from `U` complement
   have : ∃ ε > 0, ∀ z ∈ K, Metric.ball z (3 * ε) ⊆ U := sorry
   obtain ⟨ε, ε_pos, ε_ballWithinU⟩ := this
+  -- By compactness, there is a `δ` so that if `s₁` and `s₂` are within `δ` of each other, then
+  -- `γ ⟨s₁, t⟩` and `γ ⟨s₂, t⟩` are within `ε` of each other, uniformly in `t`
   have : ∃ δ > 0, ∀ s₁ ∈ Icc 0 1, ∀ s₂ ∈ Icc 0 1, ∀ t ∈ [[t₁, t₂]], |s₁ - s₂| < δ →
     Complex.abs (γ ⟨s₁, t⟩ - γ ⟨s₂, t⟩) < ε := sorry
   obtain ⟨δ, δ_pos, δ_UnifCont⟩ := this
+  -- It suffices to show that `CurvInt` is the same if `s₁` and `s₂` differ by at most `δ`
   suffices : ∀ s₁ ∈ Icc 0 1, ∀ s₂ ∈ Icc 0 1, |s₁ - s₂| < δ →
     CurvInt t₁ t₂ f (fun t ↦ γ ⟨s₁, t⟩) = CurvInt t₁ t₂ f (fun t ↦ γ ⟨s₂,t⟩)
-  · have : ∃ s : ℕ → ℝ, ∃ N, s 0 = 0 ∧ s N = 1 ∧
-      ∀ i < N, s i ∈ Icc 0 1 ∧ |s i - s (i+1)| < δ := sorry
+  · -- the interval `[0, 1]` can be covered by finitely many intervals of length at most `δ`
+    -- Note: only need `s` from `0` to `N`, but just make `s` constant after `N`
+    have : ∃ s : ℕ → ℝ, ∃ N, s 0 = 0 ∧ s N = 1 ∧
+      ∀ i, s i ∈ Icc 0 1 ∧ |s i - s (i + 1)| < δ := sorry
     obtain ⟨s, N, s₀, s₁, s_diff⟩ := this
-    have : ∀ i ≤ N, CurvInt t₁ t₂ f (fun t ↦ γ ⟨s 0, t⟩) = CurvInt t₁ t₂ f (fun t ↦ γ ⟨s i, t⟩) := sorry
-    convert this N (by simp) using 1
-    · rw [s₀]
+    -- Claim: `CurvInt` at `s i` is equal to that at `s 0`
+    have : ∀ i, CurvInt t₁ t₂ f (fun t ↦ γ ⟨s 0, t⟩) = CurvInt t₁ t₂ f (fun t ↦ γ ⟨s i, t⟩) := sorry
+    -- Now use this fact with `i = N`
+    convert this N using 1
+    · -- `CurvInt` at `s 0` is equal to that on `γ₀`
+      rw [s₀]
       apply intervalIntegral.integral_congr
       intro t ht'
-      simp_rw [h₀ t ht']
+      simp_rw [h_start_γ₀ t ht']
       congr! 1
       sorry
-    · rw [s₁]
+    · -- `CurvInt` at `s N` is equal to that on `γ₁`
+      rw [s₁]
       apply intervalIntegral.integral_congr
       intro t ht'
-      simp_rw [h₁ t ht']
+      simp_rw [h_end_γ₁ t ht']
       congr! 1
       sorry
-  · intro s₁ hs₁ s₂ hs₂ hdiff
-    sorry -- main Stein-Shakarchi argument p. 95
+  · -- given `s₁` and `s₂` in `[0, 1]` that differ by at most `δ`, we want to show that
+    -- their `CurvInt`s are equal
+    intro s₁ hs₁ s₂ hs₂ hdiff
+    -- make a sequence `t i` of points from `t₁` to `t₂` such that `γ ⟨s₁, t i⟩` and `γ ⟨s₂, t i⟩`
+    --  are within `ε` of each other
+    have : ∃ t : ℕ → ℝ, ∃ N : ℕ, t 0 = t₁ ∧ t N = t₂ ∧
+      ∀ i, t i ∈ [[t₁, t₂]] ∧ Complex.abs (γ ⟨s₁, t i⟩  - γ ⟨s₁, t (i + 1)⟩) < ε := sorry
+    obtain ⟨t, N, t0_eq_t₁, tN_eq_t₂, t_diff⟩ := this
+    -- make `2 * ε` balls centered at each `γ ⟨s₁, t i⟩`
+    let D : ℕ → Set ℂ := fun i ↦ Metric.ball (γ ⟨s₁, t i⟩) (2 * ε)
+    -- there are sequences `tz i` and `tw i` of points starting at `t₁` and ending at `t₂` such
+    -- that both `γ ⟨s₁, tz i⟩` and `γ ⟨s₂, tw i⟩` are in `D i` and `D (i + 1)`
+    have : ∃ tz tw : ℕ → ℝ, tz 0 = t₁ ∧ tw 0 = t₁ ∧ tz (N + 1) = t₂ ∧ tw (N + 1) = t₂ ∧
+      ∀ i, γ ⟨s₁, tz i⟩ ∈ D i ∧ γ ⟨s₂, tw i⟩ ∈ D i ∧
+        γ ⟨s₁, tz i⟩ ∈ D (i + 1) ∧ γ ⟨s₂, tw i⟩ ∈ D (i + 1) := sorry
+    obtain ⟨tz, tw, tz₀, tw₀, tz_N, tw_N, h_tz_tw⟩ := this
+    -- on each disc `D i`, `f` has a primitive `F i`
+    have : ∃ F : ℕ → ℂ → ℂ, ∀ i, ∀ z ∈ D i, HasDerivAt (F i) (f z) z := sorry
+    obtain ⟨F, hF⟩ := this
+    -- primitives differ by a constant
+    have : ∃ C : ℕ → ℂ, ∀ i, ∀ z ∈ D i, z ∈ D (i + 1) → F (i + 1) z = F i z + C i := sorry
+    obtain ⟨C, hC⟩ := this
+    -- so the `CurvInt` from `tz i` to `tz (i + 1)`
+    -- is equal to `F i (γ ⟨s₁, tz (i + 1)⟩) - F i (γ ⟨s₁, tz i⟩)`
+    have tz_CurvInt : ∀ i,
+      CurvInt (tz i) (tz (i + 1)) f (fun t ↦ γ ⟨s₁, t⟩) =
+        F i (γ ⟨s₁, tz (i + 1)⟩) - F i (γ ⟨s₁, tz i⟩) := sorry
+    have tw_CurvInt : ∀ i,
+      CurvInt (tw i) (tw (i + 1)) f (fun t ↦ γ ⟨s₂, t⟩) =
+        F i (γ ⟨s₂, tw (i + 1)⟩) - F i (γ ⟨s₂, tw i⟩) := sorry
+    -- the `CurvInt` at `s₁` is equal to the sum of the `CurvInt`s from `tz 0` to `tz (N + 1)`
+    have CurvInt_eq_tz : CurvInt t₁ t₂ f (fun t ↦ γ ⟨s₁, t⟩) =
+      ∑ i in Finset.range (N + 1), CurvInt (tz i) (tz (i + 1)) f (fun t ↦ γ ⟨s₁, t⟩) := sorry
+    rw [CurvInt_eq_tz]
+    -- the `CurvInt` at `s₂` is equal to the sum of the `CurvInt`s from `tw 0` to `tw (N + 1)`
+    have CurvInt_eq_tw : CurvInt t₁ t₂ f (fun t ↦ γ ⟨s₂, t⟩) =
+      ∑ i in Finset.range (N + 1), CurvInt (tw i) (tw (i + 1)) f (fun t ↦ γ ⟨s₂, t⟩) := sorry
+    rw [CurvInt_eq_tw]
+    -- almost there...
 
+
+
+#exit
 
 
 -- #exit
