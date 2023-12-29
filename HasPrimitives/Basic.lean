@@ -584,21 +584,19 @@ theorem vanishesOnRectangles_of_holomorphic {c : ℂ} {r : ℝ} {f : ℂ → ℂ
   intro z w hz hw hz' hw'
   have := rectangle_in_convex (convex_ball c r) hz hw hz' hw'
   --%% Given a rectangle in the disc, we want to show that the integral over the rectangle is zero.
-  convert integral_boundary_rect_eq_zero_of_differentiable_on_off_countable f z w ∅ ?_ ?_ ?_ using 1
-  · simp
-  · apply (hf.mono _).continuousOn
-    exact this
-  · intro x hx
-    apply hf.differentiableAt
-    rw [mem_nhds_iff]
-    refine ⟨Ioo (min z.re w.re) (max z.re w.re) ×ℂ Ioo (min z.im w.im) (max z.im w.im), ?_, ?_, ?_⟩
-    · apply subset_trans ?_ (rectangle_in_convex (convex_ball c r) hz hw hz' hw')
-      rw [Rectangle]
-      apply reProdIm_subset_iff'.mpr
-      left
-      constructor <;> convert uIoo_subset_uIcc _ _ using 1
-    · exact IsOpen.reProdIm isOpen_Ioo isOpen_Ioo
-    · convert hx using 1; simp
+  convert integral_boundary_rect_eq_zero_of_differentiable_on_off_countable f z w ∅ (by simp)
+    ((hf.mono this).continuousOn) ?_ using 1
+  intro x hx
+  apply hf.differentiableAt
+  rw [mem_nhds_iff]
+  refine ⟨Ioo (min z.re w.re) (max z.re w.re) ×ℂ Ioo (min z.im w.im) (max z.im w.im), ?_, ?_, ?_⟩
+  · apply subset_trans ?_ (rectangle_in_convex (convex_ball c r) hz hw hz' hw')
+    rw [Rectangle]
+    apply reProdIm_subset_iff'.mpr
+    left
+    constructor <;> convert uIoo_subset_uIcc _ _ using 1
+  · exact IsOpen.reProdIm isOpen_Ioo isOpen_Ioo
+  · convert hx using 1; simp
 
 -- To prove the main theorem, we first prove it on a disc
 theorem hasPrimitives_of_disc (c : ℂ) {r : ℝ} : HasPrimitives (Metric.ball c r) :=
