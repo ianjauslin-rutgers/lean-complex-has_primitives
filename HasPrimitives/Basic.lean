@@ -559,6 +559,7 @@ theorem deriv_of_wedgeInt {c : ℂ} {r : ℝ} {f : ℂ → ℂ}
     (hf : ContinuousOn f (Metric.ball c r)) (hf₂ : VanishesOnRectanglesInDisc c r f)
     {z : ℂ} (hz : z ∈ Metric.ball c r) :
     HasDerivAt (fun w => WedgeInt c w f) (f z) z := by
+  dsimp [HasDerivAt, HasDerivAtFilter, HasFDerivAtFilter]
   sorry
 
 /-- Moreira's theorem
@@ -577,20 +578,17 @@ theorem moreiras_theorem {c : ℂ} {r : ℝ} {f : ℂ → ℂ}
     ∃ g : ℂ → ℂ, ∀ z ∈ (Metric.ball c r), HasDerivAt g (f z) z :=
   ⟨fun z ↦ WedgeInt c z f, fun _ hz ↦ deriv_of_wedgeInt hf hf₂ hz⟩
 
-
-theorem vanishesOnRectangles_of_holomorphic {c : ℂ} {r : ℝ} {f : ℂ → ℂ}
-    (hf : DifferentiableOn ℂ f (Metric.ball c r)) :
-    VanishesOnRectanglesInDisc c r f := by
-  intro z w hz hw hz' hw'
-  have := rectangle_in_convex (convex_ball c r) hz hw hz' hw'
-  --%% Given a rectangle in the disc, we want to show that the integral over the rectangle is zero.
+theorem vanishesOnRectangles_of_holomorphic {f : ℂ → ℂ} {U : Set ℂ} {z w : ℂ}
+    (hf : DifferentiableOn ℂ f U)
+    (hU : Rectangle z w ⊆ U) :
+    RectangleIntegral f z w = 0 := by
   convert integral_boundary_rect_eq_zero_of_differentiable_on_off_countable f z w ∅ (by simp)
-    ((hf.mono this).continuousOn) ?_ using 1
+    ((hf.mono hU).continuousOn) ?_ using 1
   intro x hx
   apply hf.differentiableAt
   rw [mem_nhds_iff]
   refine ⟨Ioo (min z.re w.re) (max z.re w.re) ×ℂ Ioo (min z.im w.im) (max z.im w.im), ?_, ?_, ?_⟩
-  · apply subset_trans ?_ (rectangle_in_convex (convex_ball c r) hz hw hz' hw')
+  · apply subset_trans ?_ hU
     rw [Rectangle]
     apply reProdIm_subset_iff'.mpr
     left
@@ -598,6 +596,11 @@ theorem vanishesOnRectangles_of_holomorphic {c : ℂ} {r : ℝ} {f : ℂ → ℂ
   · exact IsOpen.reProdIm isOpen_Ioo isOpen_Ioo
   · convert hx using 1; simp
 
+theorem vanishesOnRectanglesInDisc_of_holomorphic {c : ℂ} {r : ℝ} {f : ℂ → ℂ}
+    (hf : DifferentiableOn ℂ f (Metric.ball c r)) :
+    VanishesOnRectanglesInDisc c r f := fun z w hz hw hz' hw' ↦
+  vanishesOnRectangles_of_holomorphic hf (rectangle_in_convex (convex_ball c r) hz hw hz' hw')
+
 -- To prove the main theorem, we first prove it on a disc
 theorem hasPrimitives_of_disc (c : ℂ) {r : ℝ} : HasPrimitives (Metric.ball c r) :=
-  fun _ hf ↦ moreiras_theorem hf.continuousOn (vanishesOnRectangles_of_holomorphic hf)
+  fun _ hf ↦ moreiras_theorem hf.continuousOn (vanishesOnRectanglesInDisc_of_holomorphic hf)

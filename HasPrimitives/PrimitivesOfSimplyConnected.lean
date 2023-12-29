@@ -1,16 +1,24 @@
 import HasPrimitives.Basic
 import Mathlib.AlgebraicTopology.FundamentalGroupoid.SimplyConnected
 
-open Set BigOperators
+open Set BigOperators Topology
 
 open scoped Interval
+
+example (f : ℝ → ℝ) (x : ℝ) (h : ContinuousAt f x) :
+  (fun y ↦ (∫ t in x..y, f t) - (y - x) * f x) =o[𝓝 x] (fun y ↦ y - x) := by
+  sorry
+
+example (f : ℝ → ℝ) (x : ℝ) (h : ContinuousAt f x) :
+  (fun y ↦ (∫ t in x..y, f (t+(y-x))) - (y - x) * f x) =o[𝓝 x] (fun y ↦ y - x) := by
+  sorry
+
+#exit
 
 /-- Given a function `f` and curve `γ`, `CurvInt` is the integral from `t₁` to `t₂` of
   `f (γ t) * γ'(t)`. -/
 noncomputable def CurvInt (t₁ t₂ : ℝ) (f : ℂ → ℂ) (γ : ℝ → ℂ) : ℂ :=
    ∫ t in t₁..t₂, deriv γ t • f (γ t)
-
-
 
 -- ADDING 12/18/23 from Heather ** NOt needed?***
 -- Put near `derivWithin_zero_of_nmem_closure`
