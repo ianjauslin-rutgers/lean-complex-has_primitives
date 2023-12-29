@@ -166,7 +166,7 @@ lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} {f : ℂ →
     (hz : z ∈ Metric.ball c r) (f_cont : ContinuousOn f (Metric.ball c r)) :
     ∀ᶠ (w : ℂ) in 𝓝 z,
       WedgeInt c w f - WedgeInt c z f = WedgeInt z w f := by
-  let r₁ := (r - dist z c) / 2
+  let r₁ := r - dist z c
   have hr₁ : 0 < r₁
   · simp only [Metric.mem_ball, gt_iff_lt] at hz ⊢
     linarith
