@@ -10,42 +10,21 @@ open scoped Interval
 noncomputable def CurvInt (t₁ t₂ : ℝ) (f : ℂ → ℂ) (γ : ℝ → ℂ) : ℂ :=
    ∫ t in t₁..t₂, deriv γ t • f (γ t)
 
--- TO DO: move to `Mathlib.Data.Intervals.UnorderedInterval` (Yael add API?)
-def uIoo {α : Type*} [LinearOrder α]  : α → α → Set α := fun a b => Ioo (a ⊓ b) (a ⊔ b)
-
--- TO DO: move to `Mathlib.Data.Intervals.UnorderedInterval` (Yael add API?)
-theorem uIoo_comm {α : Type*} [LinearOrder α] [Lattice α] (a : α) (b : α) :
-    uIoo a b = uIoo b a := by
-  sorry
-  -- dsimp [uIoo]
-  -- rw [inf_comm (a := a) (b := b), sup_comm]
-  --   --, inf_comm, sup_comm]
 
 
--- -- TO DO: move to `Mathlib.Data.Intervals.UnorderedInterval` (Yael add API?)
--- --@[simp]
--- lemma uIoo_of_le {α : Type*} [LinearOrder α] [Lattice α] {a : α} {b : α} (h : a ≤ b) :
---     uIoo a b = Ioo a b := by
---   simp [uIoo, inf_eq_left.mpr h, sup_eq_right.mpr h]
---   --simp [uIoo, h, inf_eq_left.mpr h, sup_eq_right.mpr h]
+-- ADDING 12/18/23 from Heather ** NOt needed?***
+-- Put near `derivWithin_zero_of_nmem_closure`
+-- theorem hasDerivWithinAt_of_nmem_closure {𝕜 : Type*} [NontriviallyNormedField 𝕜] {F : Type*}
+--     [NormedAddCommGroup F] [NormedSpace 𝕜 F] {f : 𝕜 → F} {x : 𝕜} {f' : F} {s : Set 𝕜}
+--     (h : x ∉ closure s) : HasDerivWithinAt f f' s x := sorry
+--  .of_nhdsWithin_eq_bot <| eq_bot_mono (nhdsWithin_mono _ (diff_subset _ _)) <| by
+--    rwa [mem_closure_iff_nhdsWithin_neBot, not_neBot] at h
 -- #exit
+--   rw [HasDerivWithinAt, HasDerivAtFilter]
+--   apply fderivWithin_zero_of_isolated
 
--- -- an open interval is equal to a closed one up to measure zero
--- lemma uIoo_eqM_uIcc (a b : ℝ) : uIoo a b =ᵐ[MeasureTheory.volume] uIcc a b := by
---   wlog h : a ≤ b
---   · convert this b a (by linarith) using 1
---     · rw [uIoo_comm]
---     · rw [uIcc_comm]
---   rw [uIcc_of_le h, uIoo_of_le h]
---   refine MeasureTheory.ae_eq_set.mpr ?_
---   constructor
---   · -- convert volume of empty is zero
---     convert MeasureTheory.measure_empty using 2
---     refine diff_eq_empty.mpr ?h.e'_2.h.e'_3.a
---     exact Ioo_subset_Icc_self
---   · rw [Icc_diff_Ioo_same h]
---     refine Finite.measure_zero ?right.h MeasureTheory.volume
---     exact toFinite {a, b}
+
+
 
 /-- If a function `f` on an open domain `U` has a primitive, then it is holomorphic. -/
 theorem holomorphic_of_primitive {f F : ℂ → ℂ} {U : Set ℂ} (U_open : IsOpen U)
