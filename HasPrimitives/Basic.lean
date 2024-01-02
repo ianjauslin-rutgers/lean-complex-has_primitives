@@ -1,5 +1,12 @@
 import Mathlib.Analysis.Complex.CauchyIntegral
 
+/-
+/%%
+We define the notion of a primitive as follows.
+
+%%/
+-/
+
 open Complex Topology Set
 
 set_option autoImplicit true
@@ -110,6 +117,17 @@ lemma cornerRectangle_in_disc {c : ℂ} {r : ℝ} {z : ℂ} (hz : z ∈ Metric.b
   simp only [_root_.sq_abs, le_add_iff_nonneg_right, ge_iff_le, sub_nonneg]
   exact sq_nonneg _
 
+/-- As `w → z`, `w.re - z.re` is big-O of `w - z`. -/
+theorem re_isBigO {z : ℂ} :
+  (fun (w : ℂ) => w.re - z.re) =O[𝓝 z] fun w => w - z := by
+  rw [Asymptotics.isBigO_iff]
+  use 1
+  filter_upwards
+  intro w
+  simp only [Real.norm_eq_abs, Complex.norm_eq_abs, one_mul]
+  rw [← Complex.sub_re]
+  exact Complex.abs_re_le_abs (w - z)
+
 end Complex
 
 /-- A real segment `[a₁, a₂]` translated by `b * I` is the complex line segment. -/
@@ -140,6 +158,15 @@ theorem verticalSegment_eq (a b₁ b₂ : ℝ) :
     obtain ⟨x₁, hx₁, hx₁', hx₁''⟩ := hx
     refine ⟨x.im, x₁, by simp⟩
 
+/-
+/%%
+\begin{definition}[Has Primitives]
+  \label{HasPrimitives}
+  \lean{HasPrimitives}\leanok
+  Given a set $U\subset\mathbb C$, for any differentiable $f:U\to\mathbb C$, there exists a differentiable $g:U\to\mathbb C$ such that $g'=f$ on $U$.
+\end{definition}
+%%/
+-/
 /-- A set `U` `HasPrimitives` if, every holomorphic function on `U` has a primitive -/
 def HasPrimitives (U : Set ℂ) : Prop :=
   ∀ f : ℂ → ℂ, DifferentiableOn ℂ f U → ∃ g : ℂ → ℂ, ∀ z ∈ U, HasDerivAt g (f z) z
@@ -161,21 +188,21 @@ def VanishesOnRectanglesInDisc (c : ℂ) (r : ℝ) (f : ℂ → ℂ) : Prop :=
 /-- If a function `f` `VanishesOnRectanglesInDisc` of center `c`, then, for all `w` in a
   neighborhood of `z`, the wedge integral from `c` to `w` minus the wedge integral from `c` to `z`
   is equal to the wedge integral from `z` to `w`. -/
-lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} {f : ℂ → ℂ} {z : ℂ}
-    (hf : VanishesOnRectanglesInDisc c r f) (hr : 0 < r)
-    (hz : z ∈ Metric.ball c r) (f_cont : ContinuousOn f (Metric.ball c r)) :
+lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} {z : ℂ}
+    (hz : z ∈ Metric.ball c r) {f : ℂ → ℂ} (f_cont : ContinuousOn f (Metric.ball c r))
+    (hf : VanishesOnRectanglesInDisc c r f) :
     ∀ᶠ (w : ℂ) in 𝓝 z,
       WedgeInt c w f - WedgeInt c z f = WedgeInt z w f := by
+--%% \begin{proof}
+  have hr : 0 < r := Metric.pos_of_mem_ball hz
   let r₁ := r - dist z c
-  have hr₁ : 0 < r₁
-  · simp only [Metric.mem_ball, gt_iff_lt] at hz ⊢
-    linarith
+  have r₁_pos : 0 < r₁ := by simp only [Metric.mem_ball, gt_iff_lt] at hz ⊢; linarith
   have z_ball : Metric.ball z r₁ ⊆ Metric.ball c r
   · intro w hw
     simp only [Metric.mem_ball] at hw hz ⊢
     have := dist_triangle w z c
     nlinarith
-  filter_upwards [Metric.ball_mem_nhds z hr₁]
+  filter_upwards [Metric.ball_mem_nhds z r₁_pos]
   intro w w_in_z_ball
   have hzPlusH : w ∈ Metric.ball c r := mem_of_subset_of_mem z_ball w_in_z_ball
   simp only [WedgeInt]
@@ -239,102 +266,102 @@ lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} {f : ℂ →
     ring
   rw [intIdecomp, intIIdecomp, rectZero]
   ring
+--%% \end{proof}
 
 
 
 
 
 
-
-lemma wedgeInt_of_const (z w c : ℂ) :
-    WedgeInt z w (fun x => c) = c*(w-z) := by
-  simp only [WedgeInt, intervalIntegral.integral_const, real_smul, ofReal_sub, smul_eq_mul]
-  ext <;>
-  simp only [add_re, mul_re, sub_re, ofReal_re, sub_im, ofReal_im, sub_self, zero_mul,
-sub_zero, I_re, I_im, mul_im, add_zero, one_mul, zero_sub, add_im,
-zero_add]
-   <;> ring
-
-
-
-lemma deriv_of_linint {f: ℝ → ℂ} {a: ℝ} {U : Set ℝ} (hU: IsOpen U) (hUa: a∈ U) (hf: ContinuousOn f U) :
-    Asymptotics.IsLittleO (𝓝 0) (fun h ↦ ((∫ x in a..a+h, f x) - h*(f a))) (fun h ↦ h) := by
-
-  sorry
-
-lemma deriv_of_horv_0 {f:ℝ →ℂ} {U: Set ℝ} {hU0: 0 ∈ U} {hU: IsOpen U}
-    (hfC: ContinuousOn f U) (hfM: StronglyMeasurableAtFilter f (nhds 0))
-    {c : ℝ} (hc: 0<c):
-    ∀ᶠ (h : ℝ) in 𝓝 0, ‖(∫ (x : ℝ) in (0:ℝ)..h, f x) - h * f 0‖ ≤ c/3 * ‖h‖ := by
-
-  have integrable : IntervalIntegrable (fun x:ℝ => f x-f 0) Real.measureSpace.volume 0 0 := by
-    simp
-  have continuous_on : ContinuousOn (fun x => f x - f 0) U := by
-    apply ContinuousOn.sub hfC (continuousOn_const)
-  have continuous : ContinuousAt (fun x => f x - f 0) 0 := by
-    apply ContinuousOn.continuousAt continuous_on ?_
-    rw [mem_nhds_iff]
-    use U
-  have measurable : StronglyMeasurableAtFilter (fun x => f x - f 0) (nhds 0) := by
-    apply ContinuousOn.stronglyMeasurableAtFilter hU continuous_on 0
-    exact hU0
-
-  have diff := intervalIntegral.integral_hasDerivAt_right integrable measurable continuous
-  rw [hasDerivAt_iff_isLittleO] at diff
-  simp only [intervalIntegral.integral_same, sub_zero, re_add_im, sub_self, real_smul, ofReal_sub, mul_zero] at diff
-  rw [Asymptotics.isLittleO_iff] at diff
-  have : 0 < c/3 := div_pos hc zero_lt_three
-  have := diff this
-
-  -- condition on h
-  rw [Filter.eventually_iff] at this
-  filter_upwards [this]
-  intro h h_diff
-
-  simp only [ofReal_zero, add_zero, re_add_im, sub_self, mul_zero, sub_zero, norm_eq_abs, Real.norm_eq_abs] at h_diff
-
-  -- write f as f-f(z₀)+f(z₀)
-  calc
-    _ = ‖(∫ x in (0:ℝ)..h, ((f x-f 0) + f 0)) - h*f 0‖ := by ring_nf
-    _ = ‖(∫ x in (0:ℝ)..h, (f x-f 0)) + (∫ x in (0:ℝ)..h, f 0) - h* f 0‖ := ?_
-    _ = ‖(∫ x in (0:ℝ)..h, (f x-f 0)) + h•f 0 - h* f 0‖ := by
-      rw [intervalIntegral.integral_const (f 0)]
-      simp
-    _ = ‖(∫ x in (0:ℝ)..h, (f x-f 0))‖ := by simp
-    _ = abs ((∫ (x : ℝ) in (0:ℝ)..h, f x - f 0)) := by simp
-    _ ≤ _ := h_diff
-  congr
-
-  rw [intervalIntegral.integral_add ?_ ?_]
-  · sorry
-  · sorry
+-- lemma wedgeInt_of_const (z w c : ℂ) :
+--     WedgeInt z w (fun x => c) = c*(w-z) := by
+--   simp only [WedgeInt, intervalIntegral.integral_const, real_smul, ofReal_sub, smul_eq_mul]
+--   ext <;>
+--   simp only [add_re, mul_re, sub_re, ofReal_re, sub_im, ofReal_im, sub_self, zero_mul,
+-- sub_zero, I_re, I_im, mul_im, add_zero, one_mul, zero_sub, add_im,
+-- zero_add]
+--    <;> ring
 
 
 
-lemma deriv_of_horv (a:ℝ) {f:ℝ →ℂ} {U: Set ℝ} {hUa: a ∈ U} {hU: IsOpen U}
-    (hfC: ContinuousOn f U) (hfM: StronglyMeasurableAtFilter f (nhds a))
-    (c : ℝ) (hc: 0<c):
-    ∀ᶠ (h : ℝ) in 𝓝 0, ‖(∫ (x : ℝ) in a..a+h, f x) - h * f a‖ ≤ c/3 * ‖h‖ := by
-  let U' := {x:ℝ | x+a ∈ U}
-  have continuous : ContinuousOn (fun x => f (a+x)) U' := by
-    sorry
-  have measurable : StronglyMeasurableAtFilter (fun x => f (a+x)) (nhds 0) := by
-    sorry
-  have := @deriv_of_horv_0 _ _ ?_ ?_ continuous measurable _ hc
-  simp_rw [intervalIntegral.integral_comp_add_left (fun x:ℝ => f x) a] at this
-  simp only [add_zero, sub_self, mul_zero, sub_zero] at this
-  exact this
+-- lemma deriv_of_linint {f: ℝ → ℂ} {a: ℝ} {U : Set ℝ} (hU: IsOpen U) (hUa: a∈ U) (hf: ContinuousOn f U) :
+--     Asymptotics.IsLittleO (𝓝 0) (fun h ↦ ((∫ x in a..a+h, f x) - h*(f a))) (fun h ↦ h) := by
 
-  simp only [mem_setOf_eq, zero_add]
-  exact hUa
+--   sorry
 
-  sorry
+-- lemma deriv_of_horv_0 {f:ℝ →ℂ} {U: Set ℝ} {hU0: 0 ∈ U} {hU: IsOpen U}
+--     (hfC: ContinuousOn f U) (hfM: StronglyMeasurableAtFilter f (nhds 0))
+--     {c : ℝ} (hc: 0<c):
+--     ∀ᶠ (h : ℝ) in 𝓝 0, ‖(∫ (x : ℝ) in (0:ℝ)..h, f x) - h * f 0‖ ≤ c/3 * ‖h‖ := by
+
+--   have integrable : IntervalIntegrable (fun x:ℝ => f x-f 0) Real.measureSpace.volume 0 0 := by
+--     simp
+--   have continuous_on : ContinuousOn (fun x => f x - f 0) U := by
+--     apply ContinuousOn.sub hfC (continuousOn_const)
+--   have continuous : ContinuousAt (fun x => f x - f 0) 0 := by
+--     apply ContinuousOn.continuousAt continuous_on ?_
+--     rw [mem_nhds_iff]
+--     use U
+--   have measurable : StronglyMeasurableAtFilter (fun x => f x - f 0) (nhds 0) := by
+--     apply ContinuousOn.stronglyMeasurableAtFilter hU continuous_on 0
+--     exact hU0
+
+--   have diff := intervalIntegral.integral_hasDerivAt_right integrable measurable continuous
+--   rw [hasDerivAt_iff_isLittleO] at diff
+--   simp only [intervalIntegral.integral_same, sub_zero, re_add_im, sub_self, real_smul, ofReal_sub, mul_zero] at diff
+--   rw [Asymptotics.isLittleO_iff] at diff
+--   have : 0 < c/3 := div_pos hc zero_lt_three
+--   have := diff this
+
+--   -- condition on h
+--   rw [Filter.eventually_iff] at this
+--   filter_upwards [this]
+--   intro h h_diff
+
+--   simp only [ofReal_zero, add_zero, re_add_im, sub_self, mul_zero, sub_zero, norm_eq_abs, Real.norm_eq_abs] at h_diff
+
+--   -- write f as f-f(z₀)+f(z₀)
+--   calc
+--     _ = ‖(∫ x in (0:ℝ)..h, ((f x-f 0) + f 0)) - h*f 0‖ := by ring_nf
+--     _ = ‖(∫ x in (0:ℝ)..h, (f x-f 0)) + (∫ x in (0:ℝ)..h, f 0) - h* f 0‖ := ?_
+--     _ = ‖(∫ x in (0:ℝ)..h, (f x-f 0)) + h•f 0 - h* f 0‖ := by
+--       rw [intervalIntegral.integral_const (f 0)]
+--       simp
+--     _ = ‖(∫ x in (0:ℝ)..h, (f x-f 0))‖ := by simp
+--     _ = abs ((∫ (x : ℝ) in (0:ℝ)..h, f x - f 0)) := by simp
+--     _ ≤ _ := h_diff
+--   congr
+
+--   rw [intervalIntegral.integral_add ?_ ?_]
+--   · sorry
+--   · sorry
 
 
-lemma deriv_of_wedgeInt' {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: ContinuousOn f U)
-    {z₀ : ℂ} (hz₀ : z₀∈U) :
-    Asymptotics.IsLittleO (𝓝 0) (fun h:ℂ ↦ ((WedgeInt z₀ (z₀+h) f) - h*(f z₀))) (fun h ↦ h) := by
-  sorry
+
+-- lemma deriv_of_horv (a:ℝ) {f:ℝ →ℂ} {U: Set ℝ} {hUa: a ∈ U} {hU: IsOpen U}
+--     (hfC: ContinuousOn f U) (hfM: StronglyMeasurableAtFilter f (nhds a))
+--     (c : ℝ) (hc: 0<c):
+--     ∀ᶠ (h : ℝ) in 𝓝 0, ‖(∫ (x : ℝ) in a..a+h, f x) - h * f a‖ ≤ c/3 * ‖h‖ := by
+--   let U' := {x:ℝ | x+a ∈ U}
+--   have continuous : ContinuousOn (fun x => f (a+x)) U' := by
+--     sorry
+--   have measurable : StronglyMeasurableAtFilter (fun x => f (a+x)) (nhds 0) := by
+--     sorry
+--   have := @deriv_of_horv_0 _ _ ?_ ?_ continuous measurable _ hc
+--   simp_rw [intervalIntegral.integral_comp_add_left (fun x:ℝ => f x) a] at this
+--   simp only [add_zero, sub_self, mul_zero, sub_zero] at this
+--   exact this
+
+--   simp only [mem_setOf_eq, zero_add]
+--   exact hUa
+
+--   sorry
+
+
+-- lemma deriv_of_wedgeInt' {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: ContinuousOn f U)
+--     {z₀ : ℂ} (hz₀ : z₀∈U) :
+--     Asymptotics.IsLittleO (𝓝 0) (fun h:ℂ ↦ ((WedgeInt z₀ (z₀+h) f) - h*(f z₀))) (fun h ↦ h) := by
+--   sorry
   -- simp [WedgeInt]
   -- -- turn littleO into bigO
   -- rw [Asymptotics.isLittleO_iff]
@@ -512,32 +539,32 @@ lemma deriv_of_wedgeInt' {f: ℂ → ℂ} {U : Set ℂ} {hU: IsOpen U} (hf: Cont
 --   rw [hf, hg]
 --   ring
 
-theorem deriv_of_wedgeInt''' {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
-    (hf : ContinuousOn f (Metric.ball c r)) (hf₂ : VanishesOnRectanglesInDisc c r f)
-    {z : ℂ} (hz : z ∈ Metric.ball c r)
-    {ε : ℝ} (hε : 0 < ε) :
-    ∀ᶠ (w : ℂ) in 𝓝 z, ‖WedgeInt z w f - (w - z) * f z‖ ≤ ε * ‖w - z‖ := by
-  sorry
+-- theorem deriv_of_wedgeInt''' {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
+--     (hf : ContinuousOn f (Metric.ball c r)) (hf₂ : VanishesOnRectanglesInDisc c r f)
+--     {z : ℂ} (hz : z ∈ Metric.ball c r)
+--     {ε : ℝ} (hε : 0 < ε) :
+--     ∀ᶠ (w : ℂ) in 𝓝 z, ‖WedgeInt z w f - (w - z) * f z‖ ≤ ε * ‖w - z‖ := by
+--   sorry
 
-theorem deriv_of_wedgeInt'' {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
-    (hf : ContinuousOn f (Metric.ball c r)) (hf₂ : VanishesOnRectanglesInDisc c r f)
-    {z : ℂ} (hz : z ∈ Metric.ball c r)
-    {ε : ℝ} (hε : 0 < ε) :
-    ∀ᶠ (w : ℂ) in 𝓝 z, ‖WedgeInt c w f - WedgeInt c z f - (w - z) * f z‖ ≤ ε * ‖w - z‖ := by
-  have diff_wedge := hf₂.diff_of_wedges hr hz hf
-  rw [Filter.eventually_iff] at diff_wedge
-  have := deriv_of_wedgeInt''' hr hf hf₂ hz hε
-  rw [Filter.eventually_iff] at this
-  filter_upwards [diff_wedge, this]
-  intro w hw hww
-  rwa [hw]
+-- theorem deriv_of_wedgeInt'' {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
+--     (hf : ContinuousOn f (Metric.ball c r)) (hf₂ : VanishesOnRectanglesInDisc c r f)
+--     {z : ℂ} (hz : z ∈ Metric.ball c r)
+--     {ε : ℝ} (hε : 0 < ε) :
+--     ∀ᶠ (w : ℂ) in 𝓝 z, ‖WedgeInt c w f - WedgeInt c z f - (w - z) * f z‖ ≤ ε * ‖w - z‖ := by
+--   have diff_wedge := hf₂.diff_of_wedges hr hz hf
+--   rw [Filter.eventually_iff] at diff_wedge
+--   have := deriv_of_wedgeInt''' hr hf hf₂ hz hε
+--   rw [Filter.eventually_iff] at this
+--   filter_upwards [diff_wedge, this]
+--   intro w hw hww
+--   rwa [hw]
 
-theorem deriv_of_wedgeInt''''' {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
-    (hf : ContinuousOn f (Metric.ball c r)) (hf₂ : VanishesOnRectanglesInDisc c r f)
-    {z : ℂ} (hz : z ∈ Metric.ball c r) :
-    deriv (fun z ↦ WedgeInt c z f) z = f z := by
-  dsimp [deriv]
-  sorry
+-- theorem deriv_of_wedgeInt''''' {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
+--     (hf : ContinuousOn f (Metric.ball c r)) (hf₂ : VanishesOnRectanglesInDisc c r f)
+--     {z : ℂ} (hz : z ∈ Metric.ball c r) :
+--     deriv (fun z ↦ WedgeInt c z f) z = f z := by
+--   dsimp [deriv]
+--   sorry
 
 -- theorem DifferentiableOn_WedgeInt {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ}
 --     (hf : ContinuousOn f (Metric.ball c r))
@@ -553,14 +580,93 @@ theorem deriv_of_wedgeInt''''' {c : ℂ} {r : ℝ} (hr : 0 < r) {f : ℂ → ℂ
 --   apply eventually_nhdsWithin_of_eventually_nhds
 --   exact deriv_of_wedgeInt'' hr hf hf₂ hz h_ε
 
+theorem deriv_of_wedgeInt_re' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (Metric.ball c r))
+  {z : ℂ} (hz : z ∈ Metric.ball c r) :
+  (fun (x : ℝ) ↦ (∫ t in z.re..x, f (t + z.im * I)) - (x - z.re) * f z)
+    =o[𝓝 z.re] fun x ↦ x - z.re := by
+  let r₁ := r - dist z c
+  have r₁_pos : 0 < r₁ := by simp only [Metric.mem_ball, gt_iff_lt] at hz ⊢; linarith
+  let s : Set ℝ := Ioo (z.re - r₁) (z.re + r₁)
+  have zRe_mem_s : z.re ∈ s := by simp [Metric.mem_ball.mp hz]
+  have s_open : IsOpen s := isOpen_Ioo
+  have s_ball : s ×ℂ {z.im} ⊆ Metric.ball c r
+  · intro x hx
+    simp only [Metric.mem_ball, dist_eq_norm, norm_eq_abs]
+    sorry
+  have f_contOn : ContinuousOn (fun (x : ℝ) => f (x + z.im * I)) s
+  · apply (hf.comp ((continuous_add_right _).comp continuous_ofReal).continuousOn)
+    intro w hw
+    change w + z.im * I ∈ Metric.ball c r
+    apply s_ball
+    rw [mem_reProdIm]
+    simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+      add_zero, gt_iff_lt, not_lt, ge_iff_le, mem_Ioo, add_im, mul_im, zero_add, mem_singleton_iff,
+      and_true]
+    apply hw
+  have int1 : IntervalIntegrable (fun (x : ℝ) => f (x + z.im * I)) MeasureTheory.volume z.re z.re
+  · apply ContinuousOn.intervalIntegrable
+    apply f_contOn.mono
+    simp [Metric.mem_ball.mp hz]
+  have int2 : StronglyMeasurableAtFilter (fun (x : ℝ) => f (x + z.im * I)) (𝓝 z.re)
+  · apply ContinuousOn.stronglyMeasurableAtFilter s_open f_contOn
+    exact zRe_mem_s
+  have int3 : ContinuousAt (fun (x : ℝ) => f (x + z.im * I)) z.re :=
+    s_open.continuousOn_iff.mp f_contOn zRe_mem_s
+  have := @intervalIntegral.integral_hasDerivAt_right (f := fun (x : ℝ) ↦ f (x + z.im * I)) (a := z.re) (b := z.re) _ _ _ int1 int2 int3
+  dsimp [HasDerivAt, HasDerivAtFilter, HasFDerivAtFilter] at this
+  simp only [intervalIntegral.integral_same, sub_zero, re_add_im, map_sub] at this
+  convert this using 3
+  ring_nf
+  congr
 
+theorem deriv_of_wedgeInt_re {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (Metric.ball c r))
+  {z : ℂ} (hz : z ∈ Metric.ball c r) :
+  (fun w ↦ (∫ x in z.re..w.re, f (x + z.im * I)) - (w - z).re * f z)
+    =o[𝓝 z] fun w ↦ w - z := by
+  have zReTendsTo : Filter.Tendsto (fun (w : ℂ) ↦ w.re) (𝓝 z) (𝓝 z.re) :=
+    by apply Continuous.tendsto Complex.continuous_re
+  have := (deriv_of_wedgeInt_re' hf hz).comp_tendsto zReTendsTo
+  have := this.trans_isBigO re_isBigO
+  convert this using 2
+  congr
+  simp
+
+
+
+theorem deriv_of_wedgeInt_im {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (Metric.ball c r))
+  {z : ℂ} (hz : z ∈ Metric.ball c r) :
+  (fun w ↦ (∫ y in z.im..w.im, f (w.re + y * I)) - (w - z).im * f z)
+    =o[𝓝 z] fun w ↦ w - z := by
+  sorry
+
+-- :
+-- (fun w =>
+--     ((∫ (x : ℝ) in w.re..z.re, f (↑x + ↑w.im * I)) + I * ∫ (y : ℝ) in w.im..z.im, f (↑z.re + ↑y * I)) -
+--       (w - z) * f z) =o[𝓝 z]
+--   fun w => w - z
 
 theorem deriv_of_wedgeInt {c : ℂ} {r : ℝ} {f : ℂ → ℂ}
-    (hf : ContinuousOn f (Metric.ball c r)) (hf₂ : VanishesOnRectanglesInDisc c r f)
+    (f_cont : ContinuousOn f (Metric.ball c r)) (hf : VanishesOnRectanglesInDisc c r f)
     {z : ℂ} (hz : z ∈ Metric.ball c r) :
     HasDerivAt (fun w => WedgeInt c w f) (f z) z := by
+  have hr : 0 < r := Metric.pos_of_mem_ball hz
   dsimp [HasDerivAt, HasDerivAtFilter, HasFDerivAtFilter]
-  sorry
+  calc
+    _ =ᶠ[𝓝 z] (fun w ↦ WedgeInt z w f - (w - z) * f z) := ?_
+    _ = (fun w ↦ (∫ x in z.re..w.re, f (↑x + ↑z.im * I)) - (w - z).re * f z)
+        + I • (fun w ↦ (∫ y in z.im..w.im, f (w.re + y * I)) - (w - z).im * f z) := ?_
+    _ =o[𝓝 z] fun w ↦ w - z :=
+      (deriv_of_wedgeInt_re f_cont hz).add ((deriv_of_wedgeInt_im f_cont hz).const_smul_left I)
+  · filter_upwards [VanishesOnRectanglesInDisc.diff_of_wedges hz f_cont hf]
+    exact fun a ha ↦ by rw [ha]
+  ext1 w
+  simp only [WedgeInt, smul_eq_mul, sub_re, ofReal_sub, sub_im, Pi.add_apply, Pi.smul_apply]
+  set intI := ∫ (x : ℝ) in z.re..w.re, f (x + z.im * I)
+  set intII := ∫ (y : ℝ) in z.im..w.im, f (w.re + y * I)
+  calc
+    _ = intI + I * intII - ((w - z).re + (w - z).im * I) * f z := by congr; rw [re_add_im]
+    _ = intI + I * intII - ((w.re - z.re) + (w.im - z.im) * I) * f z := by simp
+    _ = intI - (w.re - z.re) * f z + I * (intII - (w.im - z.im) * f z) := by ring
 
 /-- Moreira's theorem
 /%%
@@ -604,3 +710,12 @@ theorem vanishesOnRectanglesInDisc_of_holomorphic {c : ℂ} {r : ℝ} {f : ℂ �
 -- To prove the main theorem, we first prove it on a disc
 theorem hasPrimitives_of_disc (c : ℂ) {r : ℝ} : HasPrimitives (Metric.ball c r) :=
   fun _ hf ↦ moreiras_theorem hf.continuousOn (vanishesOnRectanglesInDisc_of_holomorphic hf)
+
+/-
+
+calc
+  f x = g x + O(h x)
+  ∑_{n<x} Λ n = x + O(x^(1/2+ε))
+  f =ᵤ g upto O[l] h
+  f - g =O[l] h
+-/
