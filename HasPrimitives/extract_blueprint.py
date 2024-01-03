@@ -45,4 +45,4 @@ def process_files(input_dir, output_dir):
             extract_blueprint(input_path, output_path)
 
 # Replace 'input_directory' and 'output_directory' with your actual directory names
-process_files(../HasPrimitives, ../blueprint)
+process_files("../HasPrimitives", "../blueprint")
