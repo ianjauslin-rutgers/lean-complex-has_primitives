@@ -1,11 +1,9 @@
 import Mathlib.Analysis.Complex.CauchyIntegral
 
-/-
-/%%
+/-%%
 We define the notion of a primitive as follows.
 
-%%/
--/
+%%-/
 
 open Complex Topology Set
 
@@ -136,15 +134,13 @@ theorem verticalSegment_eq (a b₁ b₂ : ℝ) :
     obtain ⟨x₁, hx₁, hx₁', hx₁''⟩ := hx
     refine ⟨x.im, x₁, by simp⟩
 
-/-
-/%%
+/-%%
 \begin{definition}[Has Primitives]
   \label{HasPrimitives}
   \lean{HasPrimitives}\leanok
   Given a set $U\subset\mathbb C$, for any differentiable $f:U\to\mathbb C$, there exists a differentiable $g:U\to\mathbb C$ such that $g'=f$ on $U$.
 \end{definition}
-%%/
--/
+%%-/
 /-- A set `U` `HasPrimitives` if, every holomorphic function on `U` has a primitive -/
 def HasPrimitives (U : Set ℂ) : Prop :=
   ∀ f : ℂ → ℂ, DifferentiableOn ℂ f U → ∃ g : ℂ → ℂ, ∀ z ∈ U, HasDerivAt g (f z) z
@@ -396,14 +392,14 @@ theorem deriv_of_wedgeInt {c : ℂ} {r : ℝ} {f : ℂ → ℂ}
     _ = intI - (w.re - z.re) * f z + I * (intII - (w.im - z.im) * f z) := by ring
 
 /-- Moreira's theorem
-/%%
+/-%%
 This is Moreira's theorem.
 \begin {theorem}[Moreira's theorem]
 \label {moreira}
 \lean {moreira}\leanok
 Let $f$ be a continuous function on a disc $D(c,r)$, and suppose that $f$ vanishes on rectangles in $D(c,r)$. Then $f$ has a primitive on $D(c,r)$.
 \end {theorem}
-%%/
+%%-/
 -/
 theorem moreiras_theorem {c : ℂ} {r : ℝ} {f : ℂ → ℂ}
     (hf : ContinuousOn f (Metric.ball c r))
