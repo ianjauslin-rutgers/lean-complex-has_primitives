@@ -1,8 +1,7 @@
 import Mathlib.Analysis.Complex.CauchyIntegral
 
 /-%%
-We define the notion of a primitive as follows.
-
+This project aims to formalize a proof that holomorphic functions on discs have primitives.
 %%-/
 
 open Complex Topology Set
@@ -41,7 +40,10 @@ lemma convexHull_reProdIm (s t : Set ℝ) :
 lemma preimage_equivRealProd_prod (s t : Set ℝ) : equivRealProd ⁻¹' (s ×ˢ t) = s ×ℂ t := rfl
 
 /-- The inequality `s × t ⊆ s₁ × t₁` holds in `ℂ` iff it holds in `ℝ × ℝ`. -/
-theorem reProdIm_subset_iff {s s₁ t t₁ : Set ℝ} : s ×ℂ t ⊆ s₁ ×ℂ t₁ ↔ s ×ˢ t ⊆ s₁ ×ˢ t₁ := sorry
+theorem reProdIm_subset_iff {s s₁ t t₁ : Set ℝ} : s ×ℂ t ⊆ s₁ ×ℂ t₁ ↔ s ×ˢ t ⊆ s₁ ×ˢ t₁ := by
+  rw [← @preimage_equivRealProd_prod s t, ← @preimage_equivRealProd_prod s₁ t₁]
+  exact Equiv.preimage_subset equivRealProd _ _
+
 
 /-- If `s ⊆ s₁ ⊆ ℝ` and `t ⊆ t₁ ⊆ ℝ`, then `s × t ⊆ s₁ × t₁` in `ℂ`. -/
 theorem reProdIm_subset_iff' {s s₁ t t₁ : Set ℝ} :
@@ -58,11 +60,21 @@ lemma segment_reProdIm_segment_eq_convexHull (z w : ℂ) :
     insert_union, ← insert_eq, preimage_equiv_eq_image_symm, image_insert_eq, image_singleton,
     equivRealProd_symm_apply, re_add_im]
 
+
+/-%%
+\begin{definition}[Rectangle]
+  \label{Rectangle}
+  \lean{Rectangle}\leanok
+    Given points $z$ and $w$ in $\mathbb C$, a ``Rectangle'' means an axis-parallel rectangle with
+    corners $z$ and $w$.
+\end{definition}
+%%-/
+/-- A `Rectangle` is an axis-parallel rectangle with corners `z` and `w`. -/
 def Rectangle (z w : ℂ) : Set ℂ := [[z.re, w.re]] ×ℂ [[z.im, w.im]]
 
 /-- If the four corners of a rectangle are contained in a convex set `U`, then the whole
   rectangle is. -/
-theorem rectangle_in_convex {U : Set ℂ} (U_convex : Convex ℝ U) {z w : ℂ} (hz : z ∈ U)
+theorem Convex.rectangle {U : Set ℂ} (U_convex : Convex ℝ U) {z w : ℂ} (hz : z ∈ U)
     (hw : w ∈ U) (hzw : (z.re + w.im * I) ∈ U) (hwz : (w.re + z.im * I) ∈ U) :
     Rectangle z w ⊆ U := by
   rw [Rectangle, segment_reProdIm_segment_eq_convexHull]
@@ -104,8 +116,6 @@ theorem im_isBigO {z : ℂ} :
   rw [← Complex.sub_im]
   exact Complex.abs_im_le_abs (w - z)
 
-end Complex
-
 /-- A real segment `[a₁, a₂]` translated by `b * I` is the complex line segment. -/
 theorem horizontalSegment_eq (a₁ a₂ b : ℝ) :
     (fun x => ↑x + ↑b * I) '' [[a₁, a₂]] = [[a₁, a₂]] ×ℂ {b} := by
@@ -133,6 +143,9 @@ theorem verticalSegment_eq (a b₁ b₂ : ℝ) :
       exists_eq_right_right, mem_preimage] at hx
     obtain ⟨x₁, hx₁, hx₁', hx₁''⟩ := hx
     refine ⟨x.im, x₁, by simp⟩
+
+end Complex
+
 
 /-%%
 \begin{definition}[Has Primitives]
@@ -195,7 +208,7 @@ lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} {z : ℂ}
     convert ContinuousOn.comp (g := f) (f := fun (x : ℝ) => (x : ℂ) + b * I) (s := uIcc a₁ a₂)
       (t := (fun (x : ℝ) => (x : ℂ) + b * I) '' (uIcc a₁ a₂)) ?_ ?_ (mapsTo_image _ _)
     · apply f_cont.mono
-      convert rectangle_in_convex (convex_ball c r) ha₁ ha₂ ?_ ?_ using 1 <;>
+      convert Convex.rectangle (convex_ball c r) ha₁ ha₂ ?_ ?_ using 1 <;>
         simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
           add_zero, add_im, mul_im, zero_add, ha₁, ha₂, Rectangle]
       simp only [le_refl, uIcc_of_le, Icc_self, horizontalSegment_eq a₁ a₂ b]
@@ -207,7 +220,7 @@ lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} {z : ℂ}
     convert ContinuousOn.comp (g := f) (f := fun (y : ℝ) => (a : ℂ) + y * I) (s := uIcc b₁ b₂)
       (t := (fun (y : ℝ) => (a : ℂ) + y * I) '' (uIcc b₁ b₂)) ?_ ?_ (mapsTo_image _ _)
     · apply f_cont.mono
-      convert rectangle_in_convex (convex_ball c r) hb₁ hb₂ ?_ ?_ using 1 <;>
+      convert Convex.rectangle (convex_ball c r) hb₁ hb₂ ?_ ?_ using 1 <;>
         simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
         add_zero, add_im, mul_im, zero_add, hb₁, hb₂, Rectangle]
       simp only [ le_refl, uIcc_of_le, Icc_self, verticalSegment_eq a b₁ b₂]
@@ -428,7 +441,7 @@ theorem vanishesOnRectangles_of_holomorphic {f : ℂ → ℂ} {U : Set ℂ} {z w
 theorem vanishesOnRectanglesInDisc_of_holomorphic {c : ℂ} {r : ℝ} {f : ℂ → ℂ}
     (hf : DifferentiableOn ℂ f (Metric.ball c r)) :
     VanishesOnRectanglesInDisc c r f := fun z w hz hw hz' hw' ↦
-  vanishesOnRectangles_of_holomorphic hf (rectangle_in_convex (convex_ball c r) hz hw hz' hw')
+  vanishesOnRectangles_of_holomorphic hf (Convex.rectangle (convex_ball c r) hz hw hz' hw')
 
 -- To prove the main theorem, we first prove it on a disc
 theorem hasPrimitives_of_disc (c : ℂ) {r : ℝ} : HasPrimitives (Metric.ball c r) :=
