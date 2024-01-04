@@ -411,7 +411,7 @@ Next we claim that, as $x \to \Re(z)$, the horizontal integral of a continuous $
 from $z$ to $x + i\Im(z)$ is equal to $(x - \Re(z)) f(z)$, up to $o(x - \Re(z))$.
 \begin{lemma}
   \label{deriv_of_wedgeInt_re'}
-  \lean{deriv_of_wedgeInt_re'}
+  \lean{deriv_of_wedgeInt_re'}\leanok
   As $x \to \Re(z)$,
   $$
     \int_{\Re(z)}^x f(t + i\Im(z))\ dt
@@ -479,7 +479,7 @@ theorem deriv_of_wedgeInt_re' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Contin
 Therefore as the complex varialbe $w \to z$, the horizontal integral of $f$ from $z$ to $\Re(w)+i\Im(z)$ is equal to $(\Re(w - z)) f(z)$, up to $o(w - z)$.
 \begin{lemma}
   \label{deriv_of_wedgeInt_re}
-  \lean{deriv_of_wedgeInt_re}
+  \lean{deriv_of_wedgeInt_re}\leanok
   As $w \to z$,
   $$
     \int_{\Re(z)}^{\Re(w)} f(t + i\Im(z))\ dt
@@ -511,23 +511,45 @@ theorem deriv_of_wedgeInt_re {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Continu
   simp
 --%% \end{proof}
 
-#exit
-
+/-%%
+Similarly, as $y \to \Im(z)$, the vertical integral of $f$ from $z$ to $\Re(z)+iy$ is equal to $(y - \Im(z)) f(z)$, up to $o(y - \Im(z))$.
+\begin{lemma}
+  \label{deriv_of_wedgeInt_im'}
+  \lean{deriv_of_wedgeInt_im'}\leanok
+  As $y \to \Im(z)$,
+  $$
+    \int_{\Im(z)}^y f(\Re(z)+it)\ dt
+    =
+    (y-\Im(z)) f(z)
+    +
+    o(y-\Im(z))
+    .
+  $$
+\end{lemma}
+The proof is the same.
+%%-/
 theorem deriv_of_wedgeInt_im' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
   {z : ℂ} (hz : z ∈ ball c r) :
-  (fun (y : ℝ) ↦ (∫ t in z.im..y, f (z.re + t * I)) - (y - z.im) * f z)
-    =o[𝓝 z.im] fun y ↦ y - z.im := by
+  (fun (y : ℝ) ↦ (∫ t in z.im..y, f (z.re + t * I))) =ᵤ (fun (y : ℝ ) ↦ (y - z.im) * f z) upto o[𝓝 z.im]
+    fun y ↦ y - z.im := by
+  suffices : (fun (y : ℝ) ↦ (∫ t in z.im..y, f (z.re + t * I)) - (y - z.im) * f z) =o[𝓝 z.im]
+    fun y ↦ y - z.im
+  · convert Asymptotics.EqUpToLittleO_apply.mpr this
   let r₁ := r - dist z c
-  have r₁_pos : 0 < r₁ := by simp only [mem_ball, gt_iff_lt] at hz ⊢; linarith
+  have : 0 < r₁ := by simp only [mem_ball, gt_iff_lt] at hz ⊢; linarith
   let s : Set ℝ := Ioo (z.im - r₁) (z.im + r₁)
   have zIm_mem_s : z.im ∈ s := by simp [mem_ball.mp hz]
   have s_open : IsOpen s := isOpen_Ioo
-  have s_ball : {z.re} ×ℂ s ⊆ ball c r
+  have s_ball₁ : {z.re} ×ℂ s ⊆ ball z r₁
   · intro x hx
-    simp only [mem_ball, dist_eq_norm, norm_eq_abs, hz] at hz ⊢
-    apply lt_trans ?_ hz
-    rw [abs_apply, abs_apply]
-    sorry
+    obtain ⟨xRe, xIm⟩ := hx
+    simp only [mem_preimage, mem_singleton_iff, mem_Ioo] at xRe xIm
+    simp only [mem_ball]
+    rw [dist_eq_re_im, xRe]
+    simp only [sub_self, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow', zero_add,
+      sub_nonneg, Real.sqrt_sq_eq_abs, abs_lt, neg_sub]
+    refine ⟨by linarith, by linarith⟩
+  have s_ball : {z.re} ×ℂ s ⊆ ball c r := Subset.trans s_ball₁ (ball_subset_ball₁ hz)
   have f_contOn : ContinuousOn (fun (y : ℝ) => f (z.re + y * I)) s
   · apply hf.comp (((continuous_add_left _).comp (continuous_mul_right _)).comp continuous_ofReal).continuousOn
     intro w hw
