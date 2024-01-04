@@ -74,7 +74,7 @@ def Rectangle (z w : ℂ) : Set ℂ := [[z.re, w.re]] ×ℂ [[z.im, w.im]]
 
 /-- If the four corners of a rectangle are contained in a convex set `U`, then the whole
   rectangle is. -/
-theorem Convex.rectangle {U : Set ℂ} (U_convex : Convex ℝ U) {z w : ℂ} (hz : z ∈ U)
+theorem rectangle_in_convex {U : Set ℂ} (U_convex : Convex ℝ U) {z w : ℂ} (hz : z ∈ U)
     (hw : w ∈ U) (hzw : (z.re + w.im * I) ∈ U) (hwz : (w.re + z.im * I) ∈ U) :
     Rectangle z w ⊆ U := by
   rw [Rectangle, segment_reProdIm_segment_eq_convexHull]
@@ -144,9 +144,6 @@ theorem verticalSegment_eq (a b₁ b₂ : ℝ) :
     obtain ⟨x₁, hx₁, hx₁', hx₁''⟩ := hx
     refine ⟨x.im, x₁, by simp⟩
 
-end Complex
-
-
 /-%%
 \begin{definition}[Has Primitives]
   \label{HasPrimitives}
@@ -158,20 +155,87 @@ end Complex
 def HasPrimitives (U : Set ℂ) : Prop :=
   ∀ f : ℂ → ℂ, DifferentiableOn ℂ f U → ∃ g : ℂ → ℂ, ∀ z ∈ U, HasDerivAt g (f z) z
 
+
+/-%%
+A wedge is the union of a horizontal line and a vertical line.
+
+\begin{definition}[Wedge Integral]
+  \label{WedgeInt}
+  \lean{WedgeInt}\leanok
+  \uses{linint}
+  Given $z,w\in\mathbb C$ and a function $f:\mathbb C\to\mathbb C$, the wedge integral from $z$ to $w$ is defined as the sum of two complex integrals, one along the horizontal path from $z$ to $\Re(w)+i \Im(z)$, and another along a vertical path from there to $w$,
+   \begin{equation}
+      \int_{z\to_W\  w} f(x)\ dx
+      :=
+      \int_{\Re(z)}^{\Re(w)} f(x+i\Im(z))\ dx
+      +
+      i\int_{\Im(z)}^{\Im(w)} f(\Re(w)+iy)\ dy
+      .
+   \end{equation}
+\end{definition}
+%%-/
 /-- The wedge integral from `z` to `w` of a function `f` -/
 noncomputable def WedgeInt (z w : ℂ) (f : ℂ → ℂ) : ℂ :=
   (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) + I • (∫ y : ℝ in z.im..w.im, f (re w + y * I))
 
+/-%%
+A ``Rectangle Integral'' is what it sounds like.
+
+\begin{definition}[Rectangle Integral]
+  \label{RectangleIntegral}
+  \lean{RectangleIntegral}\leanok
+  Given $z,w\in\mathbb C$ and a function $f:\mathbb C\to\mathbb C$, the rectangle integral is defined as the sum of four complex integrals:
+   \begin{equation}
+      \int_{R(z,w)} f(x)\ dx
+      :=
+      \int_{\Re(z)}^{\Re(w)} f(x+i\Im(z))\ dx
+      -
+      \int_{\Re(z)}^{\Re(w)} f(x+i\Im(w))\ dx
+      +
+      i\int_{\Im(z)}^{\Im(w)} f(\Re(w)+iy)\ dy
+      -
+      i\int_{\Im(z)}^{\Im(w)} f(\Re(z)+iy)\ dy
+      .
+   \end{equation}
+\end{definition}
+%%-/
+/-- A `RectangleIntegral` of a function `f` is one over a rectangle determined by
+  `z` and `w` in `ℂ`. -/
 noncomputable def RectangleIntegral (f : ℂ → ℂ) (z w : ℂ) : ℂ :=
     (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) - (∫ x : ℝ in z.re..w.re, f (x + w.im * I))
      + I • (∫ y : ℝ in z.im..w.im, f (w.re + y * I)) - I • ∫ y : ℝ in z.im..w.im, f (z.re + y * I)
 
+/-%%
+We say that a function $f$ ``vanishes on rectangles in a disc'', $D(c,r)$ if, for any rectangle contained in $D(c,r)$, the integral of $f$ over the rectangle is zero.
+\begin{definition}[Vanishes On Rectangles In Disc]
+  \label{VanishesOnRectanglesInDisc}
+  \lean{VanishesOnRectanglesInDisc}\leanok
+  A function $f:\mathbb C\to\mathbb C$ vanishes on rectangles in a disc $D(c,r)$ if, for any rectangle $R(z,w)$ contained in $D(c,r)$, the integral of $f$ over the rectangle is zero.
+\end{definition}
+%%-/
 /-- A function `f` `VanishesOnRectanglesInDisc` if, for any rectangle contained in a disc,
   the integral of `f` over the rectangle is zero. -/
 def VanishesOnRectanglesInDisc (c : ℂ) (r : ℝ) (f : ℂ → ℂ) : Prop :=
     ∀ z w, z ∈ Metric.ball c r → w ∈ Metric.ball c r → (z.re + w.im * I) ∈ Metric.ball c r →
     (w.re + z.im * I) ∈ Metric.ball c r → RectangleIntegral f z w = 0
 
+/-%%
+If a function $f$ vanishes on rectangles in a disc $D(c,r)$, then, for any $w$ in a neighborhood of $z$ in $D(c,r)$, the wedge integral from $c$ to $w$ minus the wedge integral from $c$ to $z$ is equal to the wedge integral from $z$ to $w$. This is the key lemma in the proof of the existence of primitives.
+\begin{lemma}[Wedge Integral Difference]
+  \label{diff_of_wedges}
+  \lean{VanishesOnRectanglesInDisc.diff_of_wedges}\leanok
+  \uses{VanishesOnRectanglesInDisc}
+  If a function $f$ vanishes on rectangles in a disc $D(c,r)$, then, for any $w$ in a neighborhood of $z$ in $D(c,r)$,
+  $$
+    \int_{c\to_W\  w} f(x)\ dx
+    -
+    \int_{c\to_W\  z} f(x)\ dx
+    =
+    \int_{z\to_W\  w} f(x)\ dx
+    .
+  $$
+\end{lemma}
+%%-/
 /-- If a function `f` `VanishesOnRectanglesInDisc` of center `c`, then, for all `w` in a
   neighborhood of `z`, the wedge integral from `c` to `w` minus the wedge integral from `c` to `z`
   is equal to the wedge integral from `z` to `w`. -/
@@ -182,33 +246,47 @@ lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} {z : ℂ}
       WedgeInt c w f - WedgeInt c z f = WedgeInt z w f := by
 --%% \begin{proof}
   have hr : 0 < r := Metric.pos_of_mem_ball hz
+--%% Set $r_1>0$ to be the distance from $z$ to the boundary of $D(c,r)$,
   let r₁ := r - dist z c
   have r₁_pos : 0 < r₁ := by simp only [Metric.mem_ball, gt_iff_lt] at hz ⊢; linarith
+--%% so that the disc $D(z,r_1)$ is contained in $D(c,r)$.
   have z_ball : Metric.ball z r₁ ⊆ Metric.ball c r
   · intro w hw
     simp only [Metric.mem_ball] at hw hz ⊢
     have := dist_triangle w z c
     nlinarith
+--%% Then for $w$ to be in a ``neighborhood of $z$'', it suffices to be in $D(z,r_1)$.
   filter_upwards [Metric.ball_mem_nhds z r₁_pos]
   intro w w_in_z_ball
   have hzPlusH : w ∈ Metric.ball c r := mem_of_subset_of_mem z_ball w_in_z_ball
   simp only [WedgeInt]
+--%% It is convenient to name some of the arising line integrals, to be used again and again.
+--%% We define $I_1$ to be the integral along the horizontal path from $c$ to $\Re(w)+i\Im(c)$.
   set intI := ∫ x : ℝ in c.re..(w).re, f (x + c.im * I)
+--%% We define $I_2$ to be the integral along the vertical path from $\Re(w)+i\Im(c)$ to $w$.
   set intII := I • ∫ y : ℝ in c.im..w.im, f (w.re + y * I)
+--%% We define $I_3$ to be the integral along the horizontal path from $c$ to $\Re(z)+i\Im(c)$.
   set intIII := ∫ x : ℝ in c.re..z.re, f (x + c.im * I)
+--%% We define $I_4$ to be the integral along the vertical path from $\Re(z)+i\Im(c)$ to $z$.
   set intIV := I • ∫ y : ℝ in c.im..z.im, f (z.re + y * I)
+--%% We define $I_5$ to be the integral along the horizontal path from $z$ to $\Re(w)+i\Im(z)$.
   set intV := ∫ x : ℝ in z.re..w.re, f (x + z.im * I)
+--%% We define $I_6$ to be the integral along the vertical path from $\Re(w)+i\Im(z)$ to $w$.
   set intVI := I • ∫ y : ℝ in z.im..w.im, f (w.re + y * I)
+--%% We define $I_7$ to be the integral along the horizontal path from $\Re(z)+i\Im(c)$ to
+--%% $\Re(w)+i\Im(c)$.
   let intVII := ∫ x : ℝ in z.re..w.re, f (x + c.im * I)
+--%% We define $I_8$ to be the integral along the vertical path from $\Re(w)+i\Im(c)$ to
+--%% $\Re(w)+i\Im(z)$.
   let intVIII := I • ∫ y : ℝ in c.im..z.im, f (w.re + y * I)
-  have integrableHoriz : ∀ a₁ a₂ b : ℝ, a₁ + b * I ∈ Metric.ball c r → a₂ + b * I ∈ Metric.ball c r →
-    IntervalIntegrable (fun x => f (x + b * I)) MeasureTheory.volume a₁ a₂
+  have integrableHoriz : ∀ a₁ a₂ b : ℝ, a₁ + b * I ∈ Metric.ball c r → a₂ + b * I ∈ Metric.ball c r
+    → IntervalIntegrable (fun x => f (x + b * I)) MeasureTheory.volume a₁ a₂
   · intro a₁ a₂ b ha₁ ha₂
     apply ContinuousOn.intervalIntegrable
     convert ContinuousOn.comp (g := f) (f := fun (x : ℝ) => (x : ℂ) + b * I) (s := uIcc a₁ a₂)
       (t := (fun (x : ℝ) => (x : ℂ) + b * I) '' (uIcc a₁ a₂)) ?_ ?_ (mapsTo_image _ _)
     · apply f_cont.mono
-      convert Convex.rectangle (convex_ball c r) ha₁ ha₂ ?_ ?_ using 1 <;>
+      convert rectangle_in_convex (convex_ball c r) ha₁ ha₂ ?_ ?_ using 1 <;>
         simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
           add_zero, add_im, mul_im, zero_add, ha₁, ha₂, Rectangle]
       simp only [le_refl, uIcc_of_le, Icc_self, horizontalSegment_eq a₁ a₂ b]
@@ -220,18 +298,20 @@ lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} {z : ℂ}
     convert ContinuousOn.comp (g := f) (f := fun (y : ℝ) => (a : ℂ) + y * I) (s := uIcc b₁ b₂)
       (t := (fun (y : ℝ) => (a : ℂ) + y * I) '' (uIcc b₁ b₂)) ?_ ?_ (mapsTo_image _ _)
     · apply f_cont.mono
-      convert Convex.rectangle (convex_ball c r) hb₁ hb₂ ?_ ?_ using 1 <;>
+      convert rectangle_in_convex (convex_ball c r) hb₁ hb₂ ?_ ?_ using 1 <;>
         simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
         add_zero, add_im, mul_im, zero_add, hb₁, hb₂, Rectangle]
       simp only [ le_refl, uIcc_of_le, Icc_self, verticalSegment_eq a b₁ b₂]
     · apply Continuous.continuousOn
       exact ((continuous_add_left _).comp (continuous_mul_right _)).comp continuous_ofReal
+--%% Then $I_1$ is equal to $I_3+I_7$,
   have intIdecomp : intI = intIII + intVII
   · rw [intervalIntegral.integral_add_adjacent_intervals] <;> apply integrableHoriz
     · simp only [re_add_im, Metric.mem_ball, dist_self, hr]
     · exact cornerRectangle_in_disc hz
     · exact cornerRectangle_in_disc hz
     · exact cornerRectangle_in_disc hzPlusH
+--%% and $I_2$ is equal to $I_6+I_8$.
   have intIIdecomp : intII = intVIII + intVI
   · rw [← smul_add, intervalIntegral.integral_add_adjacent_intervals] <;> apply integrableVert
     · exact cornerRectangle_in_disc hzPlusH
@@ -240,6 +320,7 @@ lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} {z : ℂ}
     · convert hzPlusH using 1; ext <;> simp
   have rectZero : intVIII = - intVII + intV + intIV
   · rw [← sub_eq_zero]
+--%% Moreover, $I_7 - I_5 + I_8 - I_4$ forms a rectangle, and hence its integral is zero.
     have : intVII - intV + intVIII - intIV = 0 := by
       have wzInBall : w.re + ↑z.im * I ∈ Metric.ball c r :=
         by exact mem_of_subset_of_mem z_ball (cornerRectangle_in_disc w_in_z_ball)
@@ -253,6 +334,8 @@ lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} {z : ℂ}
     ring
   rw [intIdecomp, intIIdecomp, rectZero]
   ring
+--%% Putting everything together shows that the wedge integral difference is equal to the wedge,
+--%% as claimed.
 --%% \end{proof}
 
 
@@ -441,11 +524,14 @@ theorem vanishesOnRectangles_of_holomorphic {f : ℂ → ℂ} {U : Set ℂ} {z w
 theorem vanishesOnRectanglesInDisc_of_holomorphic {c : ℂ} {r : ℝ} {f : ℂ → ℂ}
     (hf : DifferentiableOn ℂ f (Metric.ball c r)) :
     VanishesOnRectanglesInDisc c r f := fun z w hz hw hz' hw' ↦
-  vanishesOnRectangles_of_holomorphic hf (Convex.rectangle (convex_ball c r) hz hw hz' hw')
+  vanishesOnRectangles_of_holomorphic hf (rectangle_in_convex (convex_ball c r) hz hw hz' hw')
 
 -- To prove the main theorem, we first prove it on a disc
 theorem hasPrimitives_of_disc (c : ℂ) {r : ℝ} : HasPrimitives (Metric.ball c r) :=
   fun _ hf ↦ moreiras_theorem hf.continuousOn (vanishesOnRectanglesInDisc_of_holomorphic hf)
+
+end Complex
+
 
 /-
 
