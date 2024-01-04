@@ -10,6 +10,58 @@ set_option autoImplicit true
 
 open scoped Interval
 
+namespace Asymptotics
+
+variable {α : Type*} {E : Type*} {F : Type*} [NormedAddGroup E] [Norm F]
+
+variable {f g : α → E} {h : α → F} {l : Filter α}
+
+/--
+  We write `f =ᵤ g upto o[l] h` to mean that `f - g =o[l] h`. We call this `EqUpToLittleO`
+-/
+notation:100 f " =ᵤ" g "upto o[" l "]" h :100 => IsLittleO l (f - g) h
+
+/--
+  We write `f =ᵤ g upto O[l] h` to mean that `f - g =O[l] h`. We call this `EqUpToBigO`
+-/
+notation:100 f " =ᵤ" g "upto O[" l "]" h :100 => IsBigO l (f - g) h
+
+lemma EqUpToLittleO.trans {k : α → E}
+    (hfg : f =ᵤ g upto o[l] h)
+    (hgk : g =ᵤ k upto o[l] h) :
+    f =ᵤ k upto o[l] h := by
+  rw [IsLittleO] at hfg hgk ⊢
+  intro ε ε_pos
+  have hfgε := @hfg (ε/2) (by linarith)
+  have hgkε := @hgk (ε/2) (by linarith)
+  rw [IsBigOWith] at hfgε hgkε ⊢
+  filter_upwards [hfgε, hgkε]
+  intro x _ _
+  calc
+    _ = ‖(f - g) x + (g - k) x‖ := by simp
+    _ ≤ ‖(f - g) x‖ + ‖(g - k) x‖ := by apply norm_add_le
+    _ ≤ ε / 2 * ‖h x‖ + ε / 2 * ‖h x‖ := by linarith
+    _ = _ := by ring
+
+lemma EqUpToBigO.trans {k : α → E}
+    (hfg : f =ᵤ g upto O[l] h)
+    (hgk : g =ᵤ k upto O[l] h) :
+    f =ᵤ k upto O[l] h := by
+  rw [IsBigO] at hfg hgk ⊢
+  obtain ⟨c₁, hc₁⟩ := hfg
+  obtain ⟨c₂, hc₂⟩ := hgk
+  use c₁ + c₂
+  rw [IsBigOWith] at hc₁ hc₂ ⊢
+  filter_upwards [hc₁, hc₂]
+  intro x _ _
+  calc
+    _ = ‖(f - g) x + (g - k) x‖ := by simp
+    _ ≤ ‖(f - g) x‖ + ‖(g - k) x‖ := by apply norm_add_le
+    _ ≤ c₁ * ‖h x‖ + c₂ * ‖h x‖ := by linarith
+    _ = _ := by ring
+
+end Asymptotics
+
 namespace Set
 
 -- TO DO: move to `Mathlib.Data.Intervals.UnorderedInterval` (Yael add API?)
@@ -44,7 +96,6 @@ theorem reProdIm_subset_iff {s s₁ t t₁ : Set ℝ} : s ×ℂ t ⊆ s₁ ×ℂ
   rw [← @preimage_equivRealProd_prod s t, ← @preimage_equivRealProd_prod s₁ t₁]
   exact Equiv.preimage_subset equivRealProd _ _
 
-
 /-- If `s ⊆ s₁ ⊆ ℝ` and `t ⊆ t₁ ⊆ ℝ`, then `s × t ⊆ s₁ × t₁` in `ℂ`. -/
 theorem reProdIm_subset_iff' {s s₁ t t₁ : Set ℝ} :
     s ×ℂ t ⊆ s₁ ×ℂ t₁ ↔ s ⊆ s₁ ∧ t ⊆ t₁ ∨ s = ∅ ∨ t = ∅ := by
@@ -59,7 +110,6 @@ lemma segment_reProdIm_segment_eq_convexHull (z w : ℂ) :
     ← preimage_equivRealProd_prod, insert_prod, singleton_prod, image_pair,
     insert_union, ← insert_eq, preimage_equiv_eq_image_symm, image_insert_eq, image_singleton,
     equivRealProd_symm_apply, re_add_im]
-
 
 /-%%
 \begin{definition}[Rectangle]
@@ -338,7 +388,8 @@ lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} {z : ℂ}
 --%% as claimed.
 --%% \end{proof}
 
-
+/-- The integral of a continuous function `f`
+-/
 theorem deriv_of_wedgeInt_re' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (Metric.ball c r))
   {z : ℂ} (hz : z ∈ Metric.ball c r) :
   (fun (x : ℝ) ↦ (∫ t in z.re..x, f (t + z.im * I)) - (x - z.re) * f z)
@@ -531,13 +582,3 @@ theorem hasPrimitives_of_disc (c : ℂ) {r : ℝ} : HasPrimitives (Metric.ball c
   fun _ hf ↦ moreiras_theorem hf.continuousOn (vanishesOnRectanglesInDisc_of_holomorphic hf)
 
 end Complex
-
-
-/-
-
-calc
-  f x = g x + O(h x)
-  ∑_{n<x} Λ n = x + O(x^(1/2+ε))
-  f =ᵤ g upto O[l] h
-  f - g =O[l] h
--/
