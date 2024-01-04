@@ -30,7 +30,8 @@ $(BLUEPRINTS):
 #	  echo "\\input{$$ff.tex}" >> $@
 #	done
 
-blueprint: clean-blueprint $(BLUEPRINTS)# $(BLUEPRINT_FILE)
+blueprint: clean-blueprint# $(BLUEPRINTS)# $(BLUEPRINT_FILE)
+	python3 leanblueprint-extract/extract_blueprint -O blueprint $(PROJECT)/*.lean
 	make -C blueprint
 	make -C blueprint clean-aux
 clean-blueprint:
