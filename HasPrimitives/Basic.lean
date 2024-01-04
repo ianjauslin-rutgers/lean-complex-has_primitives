@@ -10,64 +10,6 @@ set_option autoImplicit true
 
 open scoped Interval
 
-namespace Asymptotics
-
-variable {α : Type*} {E : Type*} {F : Type*} [NormedAddGroup E] [Norm F]
-
-variable {f g : α → E} {h : α → F} {l : Filter α}
-
-/--
-  We write `f =ᵤ g upto O[l] h` to mean that `f - g =O[l] h`. We call this `EqUpToBigO`
--/
-notation:100 f " =ᵤ " g "upto O[" l "]" h :100 => IsBigO l (f - g) h
-
-lemma EqUpToBigO_apply :
-    (f =ᵤ g upto O[l] h) ↔ (IsBigO l (f - g) h) := by rfl
-
-lemma EqUpToBigO.trans {k : α → E}
-    (hfg : f =ᵤ g upto O[l] h)
-    (hgk : g =ᵤ k upto O[l] h) :
-    f =ᵤ k upto O[l] h := by
-  rw [IsBigO] at hfg hgk ⊢
-  obtain ⟨c₁, hc₁⟩ := hfg
-  obtain ⟨c₂, hc₂⟩ := hgk
-  use c₁ + c₂
-  rw [IsBigOWith] at hc₁ hc₂ ⊢
-  filter_upwards [hc₁, hc₂]
-  intro x _ _
-  calc
-    _ = ‖(f - g) x + (g - k) x‖ := by simp
-    _ ≤ ‖(f - g) x‖ + ‖(g - k) x‖ := by apply norm_add_le
-    _ ≤ c₁ * ‖h x‖ + c₂ * ‖h x‖ := by linarith
-    _ = _ := by ring
-
-/--
-  We write `f =ᵤ g upto o[l] h` to mean that `f - g =o[l] h`. We call this `EqUpToLittleO`
--/
-notation:100 f " =ᵤ " g "upto o[" l "]" h :100 => IsLittleO l (f - g) h
-
-lemma EqUpToLittleO_apply :
-    (f =ᵤ g upto o[l] h) ↔ (IsLittleO l (f - g) h) := by rfl
-
-lemma EqUpToLittleO.trans {k : α → E}
-    (hfg : f =ᵤ g upto o[l] h)
-    (hgk : g =ᵤ k upto o[l] h) :
-    f =ᵤ k upto o[l] h := by
-  rw [IsLittleO] at hfg hgk ⊢
-  intro ε ε_pos
-  have hfgε := @hfg (ε/2) (by linarith)
-  have hgkε := @hgk (ε/2) (by linarith)
-  rw [IsBigOWith] at hfgε hgkε ⊢
-  filter_upwards [hfgε, hgkε]
-  intro x _ _
-  calc
-    _ = ‖(f - g) x + (g - k) x‖ := by simp
-    _ ≤ ‖(f - g) x‖ + ‖(g - k) x‖ := by apply norm_add_le
-    _ ≤ ε / 2 * ‖h x‖ + ε / 2 * ‖h x‖ := by linarith
-    _ = _ := by ring
-
-end Asymptotics
-
 namespace Set
 
 -- TO DO: move to `Mathlib.Data.Intervals.UnorderedInterval` (Yael add API?)
@@ -436,12 +378,9 @@ from $z$ to $x + i\Im(z)$ is equal to $(x - \Re(z)) f(z)$, up to $o(x - \Re(z))$
   `(x - z.re) * f z` up to `o(x - z.re)`. -/
 theorem deriv_of_wedgeInt_re' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
   {z : ℂ} (hz : z ∈ ball c r) :
-  (fun (x : ℝ) ↦ (∫ t in z.re..x, f (t + z.im * I))) =ᵤ (fun (x : ℝ) ↦ (x - z.re) * f z)
-    upto o[𝓝 z.re] (fun (x : ℝ)  ↦ x - z.re) := by
+  (fun (x : ℝ) ↦ (∫ t in z.re..x, f (t + z.im * I)) - (x - z.re) * f z)
+    =o[𝓝 z.re] (fun (x : ℝ)  ↦ x - z.re) := by
 --%% \begin{proof}
-  suffices : (fun (x : ℝ) ↦ (∫ t in z.re..x, f (t + z.im * I)) - (x - z.re) * f z) =o[𝓝 z.re]
-    (fun (x : ℝ)  ↦ x - z.re)
-  · convert Asymptotics.EqUpToLittleO_apply.mpr this
   let r₁ := r - dist z c
   have : 0 < r₁ := by simp only [mem_ball, gt_iff_lt] at hz ⊢; linarith
   let s : Set ℝ := Ioo (z.re - r₁) (z.re + r₁)
@@ -506,12 +445,9 @@ $\Re(w)+i\Im(z)$ is equal to $(\Re(w - z)) f(z)$, up to $o(w - z)$.
   up to `o(w - z)`, as `w` tends to `z`. -/
 theorem deriv_of_wedgeInt_re {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
   {z : ℂ} (hz : z ∈ ball c r) :
-  (fun (w : ℂ) ↦ (∫ x in z.re..w.re, f (x + z.im * I))) =ᵤ (fun (w : ℂ) ↦ (w - z).re * f z)
-    upto o[𝓝 z] (fun (w : ℂ) ↦ w - z) := by
+  (fun (w : ℂ) ↦ (∫ x in z.re..w.re, f (x + z.im * I)) - ((w - z).re) * f z)
+    =o[𝓝 z] (fun w ↦ w - z) := by
 --%% \begin{proof}
-  suffices : (fun (w : ℂ) ↦ (∫ x in z.re..w.re, f (x + z.im * I)) - ((w - z).re) * f z) =o[𝓝 z]
-    (fun w ↦ w - z)
-  · convert Asymptotics.EqUpToLittleO_apply.mpr this
   have zReTendsTo : Filter.Tendsto (fun (w : ℂ) ↦ w.re) (𝓝 z) (𝓝 z.re) :=
     by apply Continuous.tendsto Complex.continuous_re
   have := (deriv_of_wedgeInt_re' hf hz).comp_tendsto zReTendsTo
@@ -542,11 +478,8 @@ The proof is the same.
 %%-/
 theorem deriv_of_wedgeInt_im' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
   {z : ℂ} (hz : z ∈ ball c r) :
-  (fun (y : ℝ) ↦ (∫ t in z.im..y, f (z.re + t * I))) =ᵤ (fun (y : ℝ ) ↦ (y - z.im) * f z)
-    upto o[𝓝 z.im] fun y ↦ y - z.im := by
-  suffices : (fun (y : ℝ) ↦ (∫ t in z.im..y, f (z.re + t * I)) - (y - z.im) * f z) =o[𝓝 z.im]
-    fun y ↦ y - z.im
-  · convert Asymptotics.EqUpToLittleO_apply.mpr this
+  (fun (y : ℝ) ↦ (∫ t in z.im..y, f (z.re + t * I)) - (y - z.im) * f z)
+    =o[𝓝 z.im] fun y ↦ y - z.im := by
   let r₁ := r - dist z c
   have : 0 < r₁ := by simp only [mem_ball, gt_iff_lt] at hz ⊢; linarith
   let s : Set ℝ := Ioo (z.im - r₁) (z.im + r₁)
@@ -609,11 +542,8 @@ The proof is again the same
 %%-/
 theorem deriv_of_wedgeInt_im'' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
   {z : ℂ} (hz : z ∈ ball c r) :
-  (fun (w : ℂ) ↦ (∫ y in z.im..w.im, f (z.re + y * I))) =ᵤ (fun (w : ℂ) ↦ (w - z).im * f z)
-    upto o[𝓝 z] fun (w : ℂ) ↦ w - z := by
-  suffices : (fun (w : ℂ) ↦ (∫ y in z.im..w.im, f (z.re + y * I)) - (w - z).im * f z) =o[𝓝 z]
-    fun (w : ℂ) ↦ w - z
-  · convert Asymptotics.EqUpToLittleO_apply.mpr this
+  (fun (w : ℂ) ↦ (∫ y in z.im..w.im, f (z.re + y * I)) - (w - z).im * f z)
+    =o[𝓝 z] fun (w : ℂ) ↦ w - z := by
   have zImTendsTo : Filter.Tendsto (fun (w : ℂ) ↦ w.im) (𝓝 z) (𝓝 z.im) :=
     by apply Continuous.tendsto Complex.continuous_im
   have := (deriv_of_wedgeInt_im' hf hz).comp_tendsto zImTendsTo
@@ -642,12 +572,9 @@ still close as $w \to z$.
 %%-/
 theorem deriv_of_wedgeInt_im''' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
   {z : ℂ} (hz : z ∈ ball c r) :
-  (fun w ↦ (∫ y in z.im..w.im, f (w.re + y * I))) =ᵤ  (fun (w : ℂ) ↦ ∫ y in z.im..w.im, f (z.re + y * I))
-    upto o[𝓝 z] fun w ↦ w - z := by
+  (fun w ↦ (∫ y in z.im..w.im, f (w.re + y * I)) - (∫ y in z.im..w.im, f (z.re + y * I)))
+    =o[𝓝 z] fun w ↦ w - z := by
 --%% \begin{proof}
-  suffices : (fun w ↦ (∫ y in z.im..w.im, f (w.re + y * I)) - (∫ y in z.im..w.im, f (z.re + y * I)))
-    =o[𝓝 z] fun w ↦ w - z
-  · convert Asymptotics.EqUpToLittleO_apply.mpr this
   /-
   calc
     _ = (fun w => (∫ (y : ℝ) in z.im..w.im, f (w.re + y * I) - f z)
