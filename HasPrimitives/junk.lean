@@ -1,59 +1,5 @@
 import Mathlib
 
-namespace Asymptotics
-
-variable {α : Type*} {E : Type*} {F : Type*} [NormedAddGroup E] [Norm F]
-
-variable {f g : α → E} {h : α → F} {l : Filter α}
-
-/--
-  We write `f =ᵤ g upto o[l] h` to mean that `f - g =o[l] h`. We call this `EqUpToLittleO`
--/
-notation:100 f " =ᵤ" g "upto o[" l "]" h :100 => IsLittleO l (f - g) h
-
-/--
-  We write `f =ᵤ g upto O[l] h` to mean that `f - g =O[l] h`. We call this `EqUpToBigO`
--/
-notation:100 f " =ᵤ" g "upto O[" l "]" h :100 => IsBigO l (f - g) h
-
-lemma EqUpToLittleO.trans {k : α → E}
-    (hfg : f =ᵤ g upto o[l] h)
-    (hgk : g =ᵤ k upto o[l] h) :
-    f =ᵤ k upto o[l] h := by
-  rw [IsLittleO] at hfg hgk ⊢
-  intro ε ε_pos
-  have hfgε := @hfg (ε/2) (by linarith)
-  have hgkε := @hgk (ε/2) (by linarith)
-  rw [IsBigOWith] at hfgε hgkε ⊢
-  filter_upwards [hfgε, hgkε]
-  intro x _ _
-  calc
-    _ = ‖(f - g) x + (g - k) x‖ := by simp
-    _ ≤ ‖(f - g) x‖ + ‖(g - k) x‖ := by apply norm_add_le
-    _ ≤ ε / 2 * ‖h x‖ + ε / 2 * ‖h x‖ := by linarith
-    _ = _ := by ring
-
-lemma EqUpToBigO.trans {k : α → E}
-    (hfg : f =ᵤ g upto O[l] h)
-    (hgk : g =ᵤ k upto O[l] h) :
-    f =ᵤ k upto O[l] h := by
-  rw [IsBigO] at hfg hgk ⊢
-  obtain ⟨c₁, hc₁⟩ := hfg
-  obtain ⟨c₂, hc₂⟩ := hgk
-  use c₁ + c₂
-  rw [IsBigOWith] at hc₁ hc₂ ⊢
-  filter_upwards [hc₁, hc₂]
-  intro x _ _
-  calc
-    _ = ‖(f - g) x + (g - k) x‖ := by simp
-    _ ≤ ‖(f - g) x‖ + ‖(g - k) x‖ := by apply norm_add_le
-    _ ≤ c₁ * ‖h x‖ + c₂ * ‖h x‖ := by linarith
-    _ = _ := by ring
-
-end Asymptotics
-
-#exit
-
 open Topology Complex
 
 lemma le_iff_sq_le {R : Type*} [LinearOrderedRing R] {x y : R} (hx : 0 ≤ x) (hy : 0 ≤ y) :

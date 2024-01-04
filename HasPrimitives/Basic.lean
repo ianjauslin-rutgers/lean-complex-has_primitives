@@ -407,12 +407,12 @@ lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} {z : ℂ}
 --%% \end{proof}
 
 /-%%
-Next we claim that, as $x → \Re(z)$, the horizontal integral of a continuous $f$
+Next we claim that, as $x \to \Re(z)$, the horizontal integral of a continuous $f$
 from $z$ to $x + i\Im(z)$ is equal to $(x - \Re(z)) f(z)$, up to $o(x - \Re(z))$.
 \begin{lemma}
   \label{deriv_of_wedgeInt_re'}
   \lean{deriv_of_wedgeInt_re'}
-  As $x → \Re(z)$,
+  As $x \to \Re(z)$,
   $$
     \int_{\Re(z)}^x f(t + i\Im(z))\ dt
     =
@@ -423,8 +423,8 @@ from $z$ to $x + i\Im(z)$ is equal to $(x - \Re(z)) f(z)$, up to $o(x - \Re(z))$
   $$
 \end{lemma}
 %%-/
-/-- The integral of a continuous function `f`
--/
+/-- The integral of a continuous function `f` from `z` to `x + z.im * I` is equal to
+  `(x - z.re) * f z` up to `o(x - z.re)`. -/
 theorem deriv_of_wedgeInt_re' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
   {z : ℂ} (hz : z ∈ ball c r) :
   (fun (x : ℝ) ↦ (∫ t in z.re..x, f (t + z.im * I))) =ᵤ (fun (x : ℝ) ↦ (x - z.re) * f z) upto o[𝓝 z.re]
@@ -434,23 +434,19 @@ theorem deriv_of_wedgeInt_re' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Contin
     (fun (x : ℝ)  ↦ x - z.re)
   · convert Asymptotics.EqUpToLittleO_apply.mpr this
   let r₁ := r - dist z c
-  have r₁_pos : 0 < r₁ := by simp only [mem_ball, gt_iff_lt] at hz ⊢; linarith
+  have : 0 < r₁ := by simp only [mem_ball, gt_iff_lt] at hz ⊢; linarith
   let s : Set ℝ := Ioo (z.re - r₁) (z.re + r₁)
   have zRe_mem_s : z.re ∈ s := by simp [mem_ball.mp hz]
   have s_open : IsOpen s := isOpen_Ioo
   have s_ball₁ : s ×ℂ {z.im} ⊆ ball z r₁
   · intro x hx
     obtain ⟨xRe, xIm⟩ := hx
-    simp only [gt_iff_lt, not_lt, ge_iff_le, mem_preimage, mem_Ioo, mem_singleton_iff] at xRe xIm
-    sorry
-  have s_ball : s ×ℂ {z.im} ⊆ ball c r
-  · sorry
-
-#exit
-    simp only [mem_ball, dist_eq_norm, norm_eq_abs, hz] at hz ⊢
-    apply lt_trans ?_ hz
-    rw [abs_apply, abs_apply]
-    sorry
+    simp only [mem_preimage, mem_singleton_iff, mem_Ioo] at xRe xIm
+    simp only [mem_ball]
+    rw [dist_eq_re_im, xIm]
+    simp only [sub_self, ne_eq, not_false_eq_true, zero_pow', add_zero, Real.sqrt_sq_eq_abs, abs_lt]
+    refine ⟨by linarith, by linarith⟩
+  have s_ball : s ×ℂ {z.im} ⊆ ball c r := Subset.trans s_ball₁ (ball_subset_ball₁ hz)
   have f_contOn : ContinuousOn (fun (x : ℝ) => f (x + z.im * I)) s
   · apply (hf.comp ((continuous_add_right _).comp continuous_ofReal).continuousOn)
     intro w hw
@@ -479,18 +475,43 @@ theorem deriv_of_wedgeInt_re' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Contin
   congr
 --%% \end{proof}
 
+/-%%
+Therefore as the complex varialbe $w \to z$, the horizontal integral of $f$ from $z$ to $\Re(w)+i\Im(z)$ is equal to $(\Re(w - z)) f(z)$, up to $o(w - z)$.
+\begin{lemma}
+  \label{deriv_of_wedgeInt_re}
+  \lean{deriv_of_wedgeInt_re}
+  As $w \to z$,
+  $$
+    \int_{\Re(z)}^{\Re(w)} f(t + i\Im(z))\ dt
+    =
+    (\Re(w-z)) f(z)
+    +
+    o(w-z)
+    .
+  $$
+\end{lemma}
+%%-/
+/- The horizontal integral of `f` from `z` to `z.re + w.im * I` is equal to `(w - z).re * f z` up to
+  `o(w - z)`, as `w` tends to `z`. -/
 theorem deriv_of_wedgeInt_re {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
   {z : ℂ} (hz : z ∈ ball c r) :
-  (fun w ↦ (∫ x in z.re..w.re, f (x + z.im * I)) - (w - z).re * f z)
-    =o[𝓝 z] fun w ↦ w - z := by
+  (fun (w : ℂ) ↦ (∫ x in z.re..w.re, f (x + z.im * I))) =ᵤ (fun (w : ℂ) ↦ (w - z).re * f z) upto o[𝓝 z]
+    (fun (w : ℂ) ↦ w - z) := by
+--%% \begin{proof}
+  suffices : (fun (w : ℂ) ↦ (∫ x in z.re..w.re, f (x + z.im * I)) - ((w - z).re) * f z) =o[𝓝 z]
+    (fun w ↦ w - z)
+  · convert Asymptotics.EqUpToLittleO_apply.mpr this
   have zReTendsTo : Filter.Tendsto (fun (w : ℂ) ↦ w.re) (𝓝 z) (𝓝 z.re) :=
     by apply Continuous.tendsto Complex.continuous_re
   have := (deriv_of_wedgeInt_re' hf hz).comp_tendsto zReTendsTo
   have := this.trans_isBigO re_isBigO
+--%% Simply apply the previous lemma, together with the fact that $\Re(w - z) = O(w - z)$ as $w \to z$.
   convert this using 2
   congr
   simp
+--%% \end{proof}
 
+#exit
 
 theorem deriv_of_wedgeInt_im' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
   {z : ℂ} (hz : z ∈ ball c r) :
