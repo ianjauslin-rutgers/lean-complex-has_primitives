@@ -648,8 +648,10 @@ theorem deriv_of_wedgeInt_im''' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Cont
     =o[𝓝 z] fun w ↦ w - z
   · convert Asymptotics.EqUpToLittleO_apply.mpr this
   /-
-  calc (fun w => (∫ (y : ℝ) in z.im..w.im, f (↑w.re + ↑y * I)) - ∫ (y : ℝ) in z.im..w.im, f (↑z.re + ↑y * I)) =o[𝓝 z] fun w =>
-  w - z
+  calc
+    _ = (fun w => (∫ (y : ℝ) in z.im..w.im, f (w.re + y * I) - f z)
+        - ∫ (y : ℝ) in z.im..w.im, f (z.re + y * I) - f z) := ?_
+    _ =o[𝓝 z] fun w ↦ w - z
   -/
   sorry
 
