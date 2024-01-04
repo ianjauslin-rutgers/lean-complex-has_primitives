@@ -220,7 +220,8 @@ namespace Complex
 \begin{definition}[Has Primitives]
   \label{HasPrimitives}
   \lean{HasPrimitives}\leanok
-  Given a set $U\subset\mathbb C$, for any differentiable $f:U\to\mathbb C$, there exists a differentiable $g:U\to\mathbb C$ such that $g'=f$ on $U$.
+  Given a set $U\subset\mathbb C$, for any differentiable $f:U\to\mathbb C$, there exists a
+  differentiable $g:U\to\mathbb C$ such that $g'=f$ on $U$.
 \end{definition}
 %%-/
 /-- A set `U` `HasPrimitives` if, every holomorphic function on `U` has a primitive -/
@@ -235,7 +236,9 @@ A wedge is the union of a horizontal line and a vertical line.
   \label{WedgeInt}
   \lean{WedgeInt}\leanok
   \uses{linint}
-  Given $z,w\in\mathbb C$ and a function $f:\mathbb C\to\mathbb C$, the wedge integral from $z$ to $w$ is defined as the sum of two complex integrals, one along the horizontal path from $z$ to $\Re(w)+i \Im(z)$, and another along a vertical path from there to $w$,
+  Given $z,w\in\mathbb C$ and a function $f:\mathbb C\to\mathbb C$, the wedge integral from
+  $z$ to $w$ is defined as the sum of two complex integrals, one along the horizontal path
+  from $z$ to $\Re(w)+i \Im(z)$, and another along a vertical path from there to $w$,
    \begin{equation}
       \int_{z\to_W\  w} f(x)\ dx
       :=
@@ -256,7 +259,8 @@ A ``Rectangle Integral'' is what it sounds like.
 \begin{definition}[Rectangle Integral]
   \label{RectangleIntegral}
   \lean{RectangleIntegral}\leanok
-  Given $z,w\in\mathbb C$ and a function $f:\mathbb C\to\mathbb C$, the rectangle integral is defined as the sum of four complex integrals:
+  Given $z,w\in\mathbb C$ and a function $f:\mathbb C\to\mathbb C$, the rectangle integral is
+  defined as the sum of four complex integrals:
    \begin{equation}
       \int_{R(z,w)} f(x)\ dx
       :=
@@ -278,11 +282,13 @@ noncomputable def RectangleIntegral (f : ℂ → ℂ) (z w : ℂ) : ℂ :=
      + I • (∫ y : ℝ in z.im..w.im, f (w.re + y * I)) - I • ∫ y : ℝ in z.im..w.im, f (z.re + y * I)
 
 /-%%
-We say that a function $f$ ``vanishes on rectangles in a disc'', $D(c,r)$ if, for any rectangle contained in $D(c,r)$, the integral of $f$ over the rectangle is zero.
+We say that a function $f$ ``vanishes on rectangles in a disc'', $D(c,r)$ if, for any rectangle
+contained in $D(c,r)$, the integral of $f$ over the rectangle is zero.
 \begin{definition}[Vanishes On Rectangles In Disc]
   \label{VanishesOnRectanglesInDisc}
   \lean{VanishesOnRectanglesInDisc}\leanok
-  A function $f:\mathbb C\to\mathbb C$ vanishes on rectangles in a disc $D(c,r)$ if, for any rectangle $R(z,w)$ contained in $D(c,r)$, the integral of $f$ over the rectangle is zero.
+  A function $f:\mathbb C\to\mathbb C$ vanishes on rectangles in a disc $D(c,r)$ if, for any
+  rectangle $R(z,w)$ contained in $D(c,r)$, the integral of $f$ over the rectangle is zero.
 \end{definition}
 %%-/
 /-- A function `f` `VanishesOnRectanglesInDisc` if, for any rectangle contained in a disc,
@@ -292,12 +298,15 @@ def VanishesOnRectanglesInDisc (c : ℂ) (r : ℝ) (f : ℂ → ℂ) : Prop :=
     (w.re + z.im * I) ∈ ball c r → RectangleIntegral f z w = 0
 
 /-%%
-If a function $f$ vanishes on rectangles in a disc $D(c,r)$, then, for any $w$ in a neighborhood of $z$ in $D(c,r)$, the wedge integral from $c$ to $w$ minus the wedge integral from $c$ to $z$ is equal to the wedge integral from $z$ to $w$. This is the key lemma in the proof of the existence of primitives.
+If a function $f$ vanishes on rectangles in a disc $D(c,r)$, then, for any $w$ in a neighborhood
+of $z$ in $D(c,r)$, the wedge integral from $c$ to $w$ minus the wedge integral from $c$ to $z$
+is equal to the wedge integral from $z$ to $w$.
 \begin{lemma}[Wedge Integral Difference]
   \label{diff_of_wedges}
   \lean{VanishesOnRectanglesInDisc.diff_of_wedges}\leanok
   \uses{VanishesOnRectanglesInDisc}
-  If a function $f$ vanishes on rectangles in a disc $D(c,r)$, then, for any $w$ in a neighborhood of $z$ in $D(c,r)$,
+  If a function $f$ vanishes on rectangles in a disc $D(c,r)$, then, for any $w$ in a
+  neighborhood of $z$ in $D(c,r)$,
   $$
     \int_{c\to_W\  w} f(x)\ dx
     -
@@ -427,8 +436,8 @@ from $z$ to $x + i\Im(z)$ is equal to $(x - \Re(z)) f(z)$, up to $o(x - \Re(z))$
   `(x - z.re) * f z` up to `o(x - z.re)`. -/
 theorem deriv_of_wedgeInt_re' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
   {z : ℂ} (hz : z ∈ ball c r) :
-  (fun (x : ℝ) ↦ (∫ t in z.re..x, f (t + z.im * I))) =ᵤ (fun (x : ℝ) ↦ (x - z.re) * f z) upto o[𝓝 z.re]
-    (fun (x : ℝ)  ↦ x - z.re) := by
+  (fun (x : ℝ) ↦ (∫ t in z.re..x, f (t + z.im * I))) =ᵤ (fun (x : ℝ) ↦ (x - z.re) * f z)
+    upto o[𝓝 z.re] (fun (x : ℝ)  ↦ x - z.re) := by
 --%% \begin{proof}
   suffices : (fun (x : ℝ) ↦ (∫ t in z.re..x, f (t + z.im * I)) - (x - z.re) * f z) =o[𝓝 z.re]
     (fun (x : ℝ)  ↦ x - z.re)
@@ -467,7 +476,8 @@ theorem deriv_of_wedgeInt_re' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Contin
   have int3 : ContinuousAt (fun (x : ℝ) => f (x + z.im * I)) z.re :=
     s_open.continuousOn_iff.mp f_contOn zRe_mem_s
 --%% This is just the fundamental theorem of calculus.
-  have := @intervalIntegral.integral_hasDerivAt_right (f := fun (x : ℝ) ↦ f (x + z.im * I)) (a := z.re) (b := z.re) _ _ _ int1 int2 int3
+  have := @intervalIntegral.integral_hasDerivAt_right (f := fun (x : ℝ) ↦ f (x + z.im * I))
+    (a := z.re) (b := z.re) _ _ _ int1 int2 int3
   dsimp [HasDerivAt, HasDerivAtFilter, HasFDerivAtFilter] at this
   simp only [intervalIntegral.integral_same, sub_zero, re_add_im, map_sub] at this
   convert this using 3
@@ -476,7 +486,8 @@ theorem deriv_of_wedgeInt_re' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Contin
 --%% \end{proof}
 
 /-%%
-Therefore as the complex varialbe $w \to z$, the horizontal integral of $f$ from $z$ to $\Re(w)+i\Im(z)$ is equal to $(\Re(w - z)) f(z)$, up to $o(w - z)$.
+Therefore as the complex varialbe $w \to z$, the horizontal integral of $f$ from $z$ to
+$\Re(w)+i\Im(z)$ is equal to $(\Re(w - z)) f(z)$, up to $o(w - z)$.
 \begin{lemma}
   \label{deriv_of_wedgeInt_re}
   \lean{deriv_of_wedgeInt_re}\leanok
@@ -491,12 +502,12 @@ Therefore as the complex varialbe $w \to z$, the horizontal integral of $f$ from
   $$
 \end{lemma}
 %%-/
-/- The horizontal integral of `f` from `z` to `z.re + w.im * I` is equal to `(w - z).re * f z` up to
-  `o(w - z)`, as `w` tends to `z`. -/
+/- The horizontal integral of `f` from `z` to `z.re + w.im * I` is equal to `(w - z).re * f z`
+  up to `o(w - z)`, as `w` tends to `z`. -/
 theorem deriv_of_wedgeInt_re {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
   {z : ℂ} (hz : z ∈ ball c r) :
-  (fun (w : ℂ) ↦ (∫ x in z.re..w.re, f (x + z.im * I))) =ᵤ (fun (w : ℂ) ↦ (w - z).re * f z) upto o[𝓝 z]
-    (fun (w : ℂ) ↦ w - z) := by
+  (fun (w : ℂ) ↦ (∫ x in z.re..w.re, f (x + z.im * I))) =ᵤ (fun (w : ℂ) ↦ (w - z).re * f z)
+    upto o[𝓝 z] (fun (w : ℂ) ↦ w - z) := by
 --%% \begin{proof}
   suffices : (fun (w : ℂ) ↦ (∫ x in z.re..w.re, f (x + z.im * I)) - ((w - z).re) * f z) =o[𝓝 z]
     (fun w ↦ w - z)
@@ -512,7 +523,8 @@ theorem deriv_of_wedgeInt_re {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Continu
 --%% \end{proof}
 
 /-%%
-Similarly, as $y \to \Im(z)$, the vertical integral of $f$ from $z$ to $\Re(z)+iy$ is equal to $(y - \Im(z)) f(z)$, up to $o(y - \Im(z))$.
+Similarly, as $y \to \Im(z)$, the vertical integral of $f$ from $z$ to $\Re(z)+iy$ is equal to
+$(y - \Im(z)) f(z)$, up to $o(y - \Im(z))$.
 \begin{lemma}
   \label{deriv_of_wedgeInt_im'}
   \lean{deriv_of_wedgeInt_im'}\leanok
@@ -530,8 +542,8 @@ The proof is the same.
 %%-/
 theorem deriv_of_wedgeInt_im' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
   {z : ℂ} (hz : z ∈ ball c r) :
-  (fun (y : ℝ) ↦ (∫ t in z.im..y, f (z.re + t * I))) =ᵤ (fun (y : ℝ ) ↦ (y - z.im) * f z) upto o[𝓝 z.im]
-    fun y ↦ y - z.im := by
+  (fun (y : ℝ) ↦ (∫ t in z.im..y, f (z.re + t * I))) =ᵤ (fun (y : ℝ ) ↦ (y - z.im) * f z)
+    upto o[𝓝 z.im] fun y ↦ y - z.im := by
   suffices : (fun (y : ℝ) ↦ (∫ t in z.im..y, f (z.re + t * I)) - (y - z.im) * f z) =o[𝓝 z.im]
     fun y ↦ y - z.im
   · convert Asymptotics.EqUpToLittleO_apply.mpr this
@@ -551,7 +563,8 @@ theorem deriv_of_wedgeInt_im' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Contin
     refine ⟨by linarith, by linarith⟩
   have s_ball : {z.re} ×ℂ s ⊆ ball c r := Subset.trans s_ball₁ (ball_subset_ball₁ hz)
   have f_contOn : ContinuousOn (fun (y : ℝ) => f (z.re + y * I)) s
-  · apply hf.comp (((continuous_add_left _).comp (continuous_mul_right _)).comp continuous_ofReal).continuousOn
+  · apply hf.comp (((continuous_add_left _).comp (continuous_mul_right _)).comp
+      continuous_ofReal).continuousOn
     intro w hw
     simp only [Function.comp_apply, mem_ball]
     apply s_ball
@@ -569,17 +582,38 @@ theorem deriv_of_wedgeInt_im' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Contin
     exact zIm_mem_s
   have int3 : ContinuousAt (fun (y : ℝ) => f (z.re + y * I)) z.im :=
     s_open.continuousOn_iff.mp f_contOn zIm_mem_s
-  have := @intervalIntegral.integral_hasDerivAt_right (f := fun (y : ℝ) ↦ f (z.re + y * I)) (a := z.im) (b := z.im) _ _ _ int1 int2 int3
+  have := @intervalIntegral.integral_hasDerivAt_right (f := fun (y : ℝ) ↦ f (z.re + y * I))
+    (a := z.im) (b := z.im) _ _ _ int1 int2 int3
   dsimp [HasDerivAt, HasDerivAtFilter, HasFDerivAtFilter] at this
   simp only [intervalIntegral.integral_same, sub_zero, re_add_im, map_sub] at this
   convert this using 3
   ring_nf
   congr
 
+/-%%
+As before, we extend this to the setting where $w$ is in a neighborhood of $z$.
+\begin{lemma}
+  \label{deriv_of_wedgeInt_im''}
+  \lean{deriv_of_wedgeInt_im''}\leanok
+  As $w \to z$,
+  $$
+    \int_{\Im(z)}^{\Im(w)} f(\Re(z)+iy)\ dy
+    =
+    (\Im(w-z)) f(z)
+    +
+    o(w-z)
+    .
+  $$
+\end{lemma}
+The proof is again the same
+%%-/
 theorem deriv_of_wedgeInt_im'' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
   {z : ℂ} (hz : z ∈ ball c r) :
-  (fun w ↦ (∫ y in z.im..w.im, f (z.re + y * I)) - (w - z).im * f z)
-    =o[𝓝 z] fun w ↦ w - z := by
+  (fun (w : ℂ) ↦ (∫ y in z.im..w.im, f (z.re + y * I))) =ᵤ (fun (w : ℂ) ↦ (w - z).im * f z)
+    upto o[𝓝 z] fun (w : ℂ) ↦ w - z := by
+  suffices : (fun (w : ℂ) ↦ (∫ y in z.im..w.im, f (z.re + y * I)) - (w - z).im * f z) =o[𝓝 z]
+    fun (w : ℂ) ↦ w - z
+  · convert Asymptotics.EqUpToLittleO_apply.mpr this
   have zImTendsTo : Filter.Tendsto (fun (w : ℂ) ↦ w.im) (𝓝 z) (𝓝 z.im) :=
     by apply Continuous.tendsto Complex.continuous_im
   have := (deriv_of_wedgeInt_im' hf hz).comp_tendsto zImTendsTo
@@ -588,12 +622,38 @@ theorem deriv_of_wedgeInt_im'' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Conti
   congr
   simp
 
+/-%%
+It turns out that the above lemma is subtly different from what is needed in the application.
+We need not the integral of $f(\Re(z)+iy)$, but rather the integral of $f(\Re(w)+iy)$. These are
+still close as $w \to z$.
+\begin{lemma}
+  \label{deriv_of_wedgeInt_im'''}
+  \lean{deriv_of_wedgeInt_im'''}
+  As $w \to z$,
+  $$
+    \int_{\Im(z)}^{\Im(w)} f(\Re(w)+iy)\ dy
+    =
+    \int_{\Im(z)}^{\Im(w)} f(\Re(z)+iy)\ dy
+    +
+    o(w-z)
+    .
+  $$
+\end{lemma}
+%%-/
 theorem deriv_of_wedgeInt_im''' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
   {z : ℂ} (hz : z ∈ ball c r) :
-  (fun w ↦ (∫ y in z.im..w.im, f (w.re + y * I)) - (∫ y in z.im..w.im, f (z.re + y * I)))
-    =o[𝓝 z] fun w ↦ w - z := by
-
+  (fun w ↦ (∫ y in z.im..w.im, f (w.re + y * I))) =ᵤ  (fun (w : ℂ) ↦ ∫ y in z.im..w.im, f (z.re + y * I))
+    upto o[𝓝 z] fun w ↦ w - z := by
+  suffices : (fun w ↦ (∫ y in z.im..w.im, f (w.re + y * I)) - (∫ y in z.im..w.im, f (z.re + y * I)))
+    =o[𝓝 z] fun w ↦ w - z
+  · convert Asymptotics.EqUpToLittleO_apply.mpr this
+  /-
+  calc (fun w => (∫ (y : ℝ) in z.im..w.im, f (↑w.re + ↑y * I)) - ∫ (y : ℝ) in z.im..w.im, f (↑z.re + ↑y * I)) =o[𝓝 z] fun w =>
+  w - z
+  -/
   sorry
+
+#exit
 
 theorem deriv_of_wedgeInt_im {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
   {z : ℂ} (hz : z ∈ ball c r) :
