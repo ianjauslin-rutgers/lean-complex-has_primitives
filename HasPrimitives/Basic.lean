@@ -644,6 +644,7 @@ theorem deriv_of_wedgeInt_im''' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Cont
   {z : ℂ} (hz : z ∈ ball c r) :
   (fun w ↦ (∫ y in z.im..w.im, f (w.re + y * I))) =ᵤ  (fun (w : ℂ) ↦ ∫ y in z.im..w.im, f (z.re + y * I))
     upto o[𝓝 z] fun w ↦ w - z := by
+--%% \begin{proof}
   suffices : (fun w ↦ (∫ y in z.im..w.im, f (w.re + y * I)) - (∫ y in z.im..w.im, f (z.re + y * I)))
     =o[𝓝 z] fun w ↦ w - z
   · convert Asymptotics.EqUpToLittleO_apply.mpr this
@@ -654,6 +655,8 @@ theorem deriv_of_wedgeInt_im''' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Cont
     _ =o[𝓝 z] fun w ↦ w - z
   -/
   sorry
+--%% \end{proof}
+
 
 #exit
 
