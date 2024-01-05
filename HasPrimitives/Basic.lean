@@ -10,6 +10,18 @@ set_option autoImplicit true
 
 open scoped Interval
 
+namespace Asymptotics
+
+/-- `f : α → E` is `ContinuousAt` `x` iff the map `y ↦ f y - f x` is littleO of 1 as `y → x`. -/
+theorem continuousAt_iff_isLittleO {α : Type*} {E : Type*} [NormedRing E] [NormOneClass E]
+    [TopologicalSpace α] {f : α → E} {x : α} :
+    (ContinuousAt f x) ↔ (fun (y : α) ↦ f y - f x) =o[𝓝 x] (fun (_ : α) ↦ (1 : E)) := by
+  convert (Asymptotics.isLittleO_one_iff (f' := fun (y : α) => f y - f x) (l := 𝓝 x) (F := E)).symm
+  exact Iff.symm tendsto_sub_nhds_zero_iff
+
+
+end Asymptotics
+
 namespace Set
 
 -- TO DO: move to `Mathlib.Data.Intervals.UnorderedInterval` (Yael add API?)
@@ -203,18 +215,19 @@ A ``Rectangle Integral'' is what it sounds like.
   \lean{RectangleIntegral}\leanok
   Given $z,w\in\mathbb C$ and a function $f:\mathbb C\to\mathbb C$, the rectangle integral is
   defined as the sum of four complex integrals:
-   \begin{equation}
+   \begin{eqnarray}
       \int_{R(z,w)} f(x)\ dx
-      :=
+      &:=&
       \int_{\Re(z)}^{\Re(w)} f(x+i\Im(z))\ dx
       -
       \int_{\Re(z)}^{\Re(w)} f(x+i\Im(w))\ dx
-      +
+      \\
+      &&+
       i\int_{\Im(z)}^{\Im(w)} f(\Re(w)+iy)\ dy
       -
       i\int_{\Im(z)}^{\Im(w)} f(\Re(z)+iy)\ dy
       .
-   \end{equation}
+   \end{eqnarray}
 \end{definition}
 %%-/
 /-- A `RectangleIntegral` of a function `f` is one over a rectangle determined by
@@ -552,18 +565,6 @@ theorem deriv_of_wedgeInt_im'' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Conti
   congr
   simp
 
-
-
--- theorem continuousAt_iff_isLittleO {f : ℂ → ℂ} {z : ℂ} :
---     (ContinuousAt f z) ↔ (fun w ↦ f w - f z) =o[𝓝 z] (1 : ℂ → ℂ) := by
---   sorry
-
---   dsimp [ContinuousAt] at hf
-
-
---   sorry
-
-
 /-%%
 It turns out that the above lemma is subtly different from what is needed in the application.
 We need not the integral of $f(\Re(z)+iy)$, but rather the integral of $f(\Re(w)+iy)$. These are
@@ -585,17 +586,27 @@ theorem deriv_of_wedgeInt_im''' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Cont
   (fun w ↦ ∫ y in z.im..w.im, f (w.re + y * I) - f z)
     =o[𝓝 z] fun w ↦ w - z := by
 --%% \begin{proof}
-  have : (fun w ↦ f w - f z) =o[𝓝 z] fun w ↦ w - z := by
-    have := (hf.sub continuousOn_const).is_O (is_o_refl z) hz
-  rw [Asymptotics.IsLittleO]
+  have : (fun w ↦ f w - f z) =o[𝓝 z] fun w ↦ (1 : ℂ)
+  · refine (Asymptotics.continuousAt_iff_isLittleO (f := f) (x := z)).mp ((hf z hz).continuousAt ?_)
+    exact (IsOpen.mem_nhds_iff isOpen_ball).mpr hz
+  rw [Asymptotics.IsLittleO] at this ⊢
+  intro ε ε_pos
+  have := this ε_pos
+  simp only [Asymptotics.isBigOWith_iff, Pi.one_apply, norm_one, mul_one ] at this ⊢
+  have : ∀ᶠ (w : ℂ) in 𝓝 z, ∀ y ∈ Ι z.im w.im, ‖f (w.re + y * I) - f z‖ ≤ ε
+  · rw [Metric.nhds_basis_closedBall.eventually_iff] at this ⊢
+    obtain ⟨i, i_pos, hi⟩ := this
+    refine ⟨i, i_pos, ?_⟩
+    intro w w_in_ball y y_in_I
+    apply hi
 
-  /-
+    sorry
+  apply this.mono ?_
+  intro w hw
   calc
-    _ = (fun w => (∫ (y : ℝ) in z.im..w.im, f (w.re + y * I) - f z)
-        - ∫ (y : ℝ) in z.im..w.im, f (z.re + y * I) - f z) := ?_
-    _ =o[𝓝 z] fun w ↦ w - z
-  -/
-  sorry
+    _ ≤ ε * |w.im - z.im|  := intervalIntegral.norm_integral_le_of_norm_le_const hw
+    _ = ε * |(w - z).im| := by simp
+    _ ≤ ε  * ‖w - z‖ := by gcongr; apply abs_im_le_abs
 --%% \end{proof}
 
 

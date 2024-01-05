@@ -2,23 +2,10 @@ import Mathlib
 
 open Topology
 
-theorem Asymptotics.tendsto_zero_iff_isLittleO {α : Type*} {E : Type*} [NormedRing E] {f : α → E} {l : Filter α} :
-    (Filter.Tendsto f l (nhds 0)) ↔ f =o[l] (1 : α → E) := by
-  sorry
-
-theorem tendsto_sub {M : Type*} [TopologicalSpace M] [Ring M] {a : M} {b : M} :
-    Filter.Tendsto (fun (p : M × M) => p.1 - p.2) (nhds (a, b)) (nhds (a - b)) := by
-  convert Continuous.tendsto ?_ ?_
-  convert Continuous.sub _ _
-  sorry
-
 theorem continuousAt_iff_isLittleO {f : ℂ → ℂ} {z : ℂ} :
     (ContinuousAt f z) ↔ (fun w ↦ f w - f z) =o[𝓝 z] (1 : ℂ → ℂ) := by
-  rw [← Asymptotics.tendsto_zero_iff_isLittleO (f := fun (w:ℂ) ↦ f w - f z) (l := 𝓝 z)]
-  dsimp [ContinuousAt]
-
-#exit
-
+  convert (Asymptotics.isLittleO_one_iff (f' := fun (w:ℂ) => f w - f z) (l := 𝓝 z) (F := ℂ)).symm
+  exact Iff.symm tendsto_sub_nhds_zero_iff
 
 lemma le_iff_sq_le {R : Type*} [LinearOrderedRing R] {x y : R} (hx : 0 ≤ x) (hy : 0 ≤ y) :
     x ≤ y ↔ x^2 ≤ y^2 := by
