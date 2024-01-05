@@ -552,19 +552,29 @@ theorem deriv_of_wedgeInt_im'' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Conti
   congr
   simp
 
+
+
+-- theorem continuousAt_iff_isLittleO {f : ℂ → ℂ} {z : ℂ} :
+--     (ContinuousAt f z) ↔ (fun w ↦ f w - f z) =o[𝓝 z] (1 : ℂ → ℂ) := by
+--   sorry
+
+--   dsimp [ContinuousAt] at hf
+
+
+--   sorry
+
+
 /-%%
 It turns out that the above lemma is subtly different from what is needed in the application.
 We need not the integral of $f(\Re(z)+iy)$, but rather the integral of $f(\Re(w)+iy)$. These are
-still close as $w \to z$.
+still close as $w \to z$. This lemma prepares for the real thing.
 \begin{lemma}
   \label{deriv_of_wedgeInt_im'''}
   \lean{deriv_of_wedgeInt_im'''}
   As $w \to z$,
   $$
-    \int_{\Im(z)}^{\Im(w)} f(\Re(w)+iy)\ dy
+    \int_{\Im(z)}^{\Im(w)} (f(\Re(w)+iy) - f (z))\ dy
     =
-    \int_{\Im(z)}^{\Im(w)} f(\Re(z)+iy)\ dy
-    +
     o(w-z)
     .
   $$
@@ -572,9 +582,13 @@ still close as $w \to z$.
 %%-/
 theorem deriv_of_wedgeInt_im''' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
   {z : ℂ} (hz : z ∈ ball c r) :
-  (fun w ↦ (∫ y in z.im..w.im, f (w.re + y * I)) - (∫ y in z.im..w.im, f (z.re + y * I)))
+  (fun w ↦ ∫ y in z.im..w.im, f (w.re + y * I) - f z)
     =o[𝓝 z] fun w ↦ w - z := by
 --%% \begin{proof}
+  have : (fun w ↦ f w - f z) =o[𝓝 z] fun w ↦ w - z := by
+    have := (hf.sub continuousOn_const).is_O (is_o_refl z) hz
+  rw [Asymptotics.IsLittleO]
+
   /-
   calc
     _ = (fun w => (∫ (y : ℝ) in z.im..w.im, f (w.re + y * I) - f z)
