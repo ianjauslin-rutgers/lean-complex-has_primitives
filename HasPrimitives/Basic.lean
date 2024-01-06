@@ -587,7 +587,7 @@ theorem deriv_of_wedgeInt_im''' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Cont
     =o[𝓝 z] fun w ↦ w - z := by
 --%% \begin{proof}
 --%% Use the fact that the map $w \mapsto f(w)-f(z)$ is $o(1)$ as $w \to z$.
-  have : (fun w ↦ f w - f z) =o[𝓝 z] fun w ↦ (1 : ℂ)
+  have : (fun w ↦ f w - f z) =o[𝓝 z] fun (_ : ℂ) ↦ (1 : ℂ)
   · refine (Asymptotics.continuousAt_iff_isLittleO (f := f) (x := z)).mp ((hf z hz).continuousAt ?_)
     exact (IsOpen.mem_nhds_iff isOpen_ball).mpr hz
   rw [Asymptotics.IsLittleO] at this ⊢
@@ -605,20 +605,10 @@ theorem deriv_of_wedgeInt_im''' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Cont
     apply le_trans ?_ w_in_ball
     rw [dist_eq_re_im, dist_eq_re_im]
     apply Real.le_sqrt_of_sq_le
+    rw [Real.sq_sqrt (by positivity)]
     simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
-      add_zero, add_im, mul_im, zero_add]
-/-
-    rw [dist_of_im_eq] <;> simp only [add_re, I_re, mul_zero, I_im, zero_add, add_im,
-    add_zero, sub_self, mul_re, mul_one, ofReal_im, mul_im, ofReal_re]
-  apply lt_of_le_of_lt ?_ hz
-  rw [dist_eq_re_im, Real.dist_eq]
-  apply Real.le_sqrt_of_sq_le
-  simp only [_root_.sq_abs, le_add_iff_nonneg_right, ge_iff_le, sub_nonneg]
-  exact sq_nonneg _
-  -/
-
-#exit
-    sorry
+      add_zero, add_im, mul_im, zero_add, add_le_add_iff_left]
+    cases y_in_I <;> nlinarith
   apply this.mono ?_
   intro w hw
   calc
@@ -626,9 +616,6 @@ theorem deriv_of_wedgeInt_im''' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Cont
     _ = ε * |(w - z).im| := by simp
     _ ≤ ε  * ‖w - z‖ := by gcongr; apply abs_im_le_abs
 --%% \end{proof}
-
-
-#exit
 
 theorem deriv_of_wedgeInt_im {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
   {z : ℂ} (hz : z ∈ ball c r) :
@@ -640,12 +627,16 @@ theorem deriv_of_wedgeInt_im {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Continu
           by exact (sub_add_sub_cancel _ _ _).symm
     _ =o[𝓝 z] fun w => w - z := by
       convert (deriv_of_wedgeInt_im''' hf hz).add (deriv_of_wedgeInt_im'' hf hz) using 1
+      ext1 w ; simp
+      sorry
+
+
 
 theorem deriv_of_wedgeInt {c : ℂ} {r : ℝ} {f : ℂ → ℂ}
     (f_cont : ContinuousOn f (ball c r)) (hf : VanishesOnRectanglesInDisc c r f)
     {z : ℂ} (hz : z ∈ ball c r) :
     HasDerivAt (fun w => WedgeInt c w f) (f z) z := by
-  have hr : 0 < r := pos_of_mem_ball hz
+  have : 0 < r := pos_of_mem_ball hz
   dsimp [HasDerivAt, HasDerivAtFilter, HasFDerivAtFilter]
   calc
     _ =ᶠ[𝓝 z] (fun w ↦ WedgeInt z w f - (w - z) * f z) := ?_
@@ -688,7 +679,7 @@ theorem vanishesOnRectangles_of_holomorphic {f : ℂ → ℂ} {U : Set ℂ} {z w
     ((hf.mono hU).continuousOn) ?_ using 1
   intro x hx
   apply hf.differentiableAt
-  rw [mem_nhds_iff]
+  rw [_root_.mem_nhds_iff]
   refine ⟨Ioo (min z.re w.re) (max z.re w.re) ×ℂ Ioo (min z.im w.im) (max z.im w.im), ?_, ?_, ?_⟩
   · apply subset_trans ?_ hU
     rw [Rectangle]
