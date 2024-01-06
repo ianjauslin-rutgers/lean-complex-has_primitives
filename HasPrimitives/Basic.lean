@@ -586,6 +586,7 @@ theorem deriv_of_wedgeInt_im''' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Cont
   (fun w ↦ ∫ y in z.im..w.im, f (w.re + y * I) - f z)
     =o[𝓝 z] fun w ↦ w - z := by
 --%% \begin{proof}
+--%% Use the fact that the map $w \mapsto f(w)-f(z)$ is $o(1)$ as $w \to z$.
   have : (fun w ↦ f w - f z) =o[𝓝 z] fun w ↦ (1 : ℂ)
   · refine (Asymptotics.continuousAt_iff_isLittleO (f := f) (x := z)).mp ((hf z hz).continuousAt ?_)
     exact (IsOpen.mem_nhds_iff isOpen_ball).mpr hz
@@ -599,7 +600,24 @@ theorem deriv_of_wedgeInt_im''' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Cont
     refine ⟨i, i_pos, ?_⟩
     intro w w_in_ball y y_in_I
     apply hi
+    rw [mem_closedBall] at w_in_ball ⊢
+    rw [mem_uIoc] at y_in_I
+    apply le_trans ?_ w_in_ball
+    rw [dist_eq_re_im, dist_eq_re_im]
+    apply Real.le_sqrt_of_sq_le
+    simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+      add_zero, add_im, mul_im, zero_add]
+/-
+    rw [dist_of_im_eq] <;> simp only [add_re, I_re, mul_zero, I_im, zero_add, add_im,
+    add_zero, sub_self, mul_re, mul_one, ofReal_im, mul_im, ofReal_re]
+  apply lt_of_le_of_lt ?_ hz
+  rw [dist_eq_re_im, Real.dist_eq]
+  apply Real.le_sqrt_of_sq_le
+  simp only [_root_.sq_abs, le_add_iff_nonneg_right, ge_iff_le, sub_nonneg]
+  exact sq_nonneg _
+  -/
 
+#exit
     sorry
   apply this.mono ?_
   intro w hw
