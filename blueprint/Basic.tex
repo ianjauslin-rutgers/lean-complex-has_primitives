@@ -2,6 +2,7 @@
 This project aims to formalize a proof that holomorphic functions on discs have primitives.
 
 
+
 \begin{definition}[Rectangle]
   \label{Rectangle}
   \lean{Rectangle}\leanok
@@ -10,12 +11,14 @@ This project aims to formalize a proof that holomorphic functions on discs have 
 \end{definition}
 
 
+
 \begin{definition}[Has Primitives]
   \label{HasPrimitives}
   \lean{HasPrimitives}\leanok
   Given a set $U\subset\mathbb C$, for any differentiable $f:U\to\mathbb C$, there exists a
   differentiable $g:U\to\mathbb C$ such that $g'=f$ on $U$.
 \end{definition}
+
 
 
 A wedge is the union of a horizontal line and a vertical line.
@@ -36,6 +39,7 @@ A wedge is the union of a horizontal line and a vertical line.
       .
    \end{equation}
 \end{definition}
+
 
 
 A ``Rectangle Integral'' is what it sounds like.
@@ -61,6 +65,7 @@ A ``Rectangle Integral'' is what it sounds like.
 \end{definition}
 
 
+
 We say that a function $f$ ``vanishes on rectangles in a disc'', $D(c,r)$ if, for any rectangle
 contained in $D(c,r)$, the integral of $f$ over the rectangle is zero.
 \begin{definition}[Vanishes On Rectangles In Disc]
@@ -69,6 +74,7 @@ contained in $D(c,r)$, the integral of $f$ over the rectangle is zero.
   A function $f:\mathbb C\to\mathbb C$ vanishes on rectangles in a disc $D(c,r)$ if, for any
   rectangle $R(z,w)$ contained in $D(c,r)$, the integral of $f$ over the rectangle is zero.
 \end{definition}
+
 
 
 If a function $f$ vanishes on rectangles in a disc $D(c,r)$, then, for any $w$ in a neighborhood
@@ -90,27 +96,49 @@ is equal to the wedge integral from $z$ to $w$.
   $$
 \end{lemma}
 
+
  \begin{proof}
+
  Set $r_1>0$ to be the distance from $z$ to the boundary of $D(c,r)$,
+
  so that the disc $D(z,r_1)$ is contained in $D(c,r)$.
+
  Then for $w$ to be in a ``neighborhood of $z$'', it suffices to be in $D(z,r_1)$.
+
  It is convenient to name some of the arising line integrals, to be used again and again.
+
  We define $I_1$ to be the integral along the horizontal path from $c$ to $\Re(w)+i\Im(c)$.
+
  We define $I_2$ to be the integral along the vertical path from $\Re(w)+i\Im(c)$ to $w$.
+
  We define $I_3$ to be the integral along the horizontal path from $c$ to $\Re(z)+i\Im(c)$.
+
  We define $I_4$ to be the integral along the vertical path from $\Re(z)+i\Im(c)$ to $z$.
+
  We define $I_5$ to be the integral along the horizontal path from $z$ to $\Re(w)+i\Im(z)$.
+
  We define $I_6$ to be the integral along the vertical path from $\Re(w)+i\Im(z)$ to $w$.
+
  We define $I_7$ to be the integral along the horizontal path from $\Re(z)+i\Im(c)$ to
+
  $\Re(w)+i\Im(c)$.
+
  We define $I_8$ to be the integral along the vertical path from $\Re(w)+i\Im(c)$ to
+
  $\Re(w)+i\Im(z)$.
+
  Then $I_1$ is equal to $I_3+I_7$,
+
  and $I_2$ is equal to $I_6+I_8$.
+
  Moreover, $I_7 - I_5 + I_8 - I_4$ forms a rectangle, and hence its integral is zero.
+
  Putting everything together shows that the wedge integral difference is equal to the wedge,
+
  as claimed.
+
  \end{proof}
+
 
 Next we claim that, as $x \to \Re(z)$, the horizontal integral of a continuous $f$
 from $z$ to $x + i\Im(z)$ is equal to $(x - \Re(z)) f(z)$, up to $o(x - \Re(z))$.
@@ -128,9 +156,13 @@ from $z$ to $x + i\Im(z)$ is equal to $(x - \Re(z)) f(z)$, up to $o(x - \Re(z))$
   $$
 \end{lemma}
 
+
  \begin{proof}
+
  This is just the fundamental theorem of calculus.
+
  \end{proof}
+
 
 Therefore as the complex varialbe $w \to z$, the horizontal integral of $f$ from $z$ to
 $\Re(w)+i\Im(z)$ is equal to $(\Re(w - z)) f(z)$, up to $o(w - z)$.
@@ -148,9 +180,13 @@ $\Re(w)+i\Im(z)$ is equal to $(\Re(w - z)) f(z)$, up to $o(w - z)$.
   $$
 \end{lemma}
 
+
  \begin{proof}
+
  Simply apply the previous lemma, together with the fact that $\Re(w - z) = O(w - z)$ as $w \to z$.
+
  \end{proof}
+
 
 Similarly, as $y \to \Im(z)$, the vertical integral of $f$ from $z$ to $\Re(z)+iy$ is equal to
 $(y - \Im(z)) f(z)$, up to $o(y - \Im(z))$.
@@ -170,6 +206,7 @@ $(y - \Im(z)) f(z)$, up to $o(y - \Im(z))$.
 The proof is the same.
 
 
+
 As before, we extend this to the setting where $w$ is in a neighborhood of $z$.
 \begin{lemma}
   \label{deriv_of_wedgeInt_im''}
@@ -187,6 +224,7 @@ As before, we extend this to the setting where $w$ is in a neighborhood of $z$.
 The proof is again the same
 
 
+
 It turns out that the above lemma is subtly different from what is needed in the application.
 We need not the integral of $f(\Re(z)+iy)$, but rather the integral of $f(\Re(w)+iy)$. These are
 still close as $w \to z$. This lemma prepares for the real thing.
@@ -202,8 +240,11 @@ still close as $w \to z$. This lemma prepares for the real thing.
   $$
 \end{lemma}
 
+
  \begin{proof}
+
  \end{proof}
+
 
 This is Moreira's theorem.
 \begin {theorem}[Moreira's theorem]
@@ -211,4 +252,5 @@ This is Moreira's theorem.
 \lean {moreira}\leanok
 Let $f$ be a continuous function on a disc $D(c,r)$, and suppose that $f$ vanishes on rectangles in $D(c,r)$. Then $f$ has a primitive on $D(c,r)$.
 \end {theorem}
+
 
