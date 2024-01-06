@@ -19,7 +19,6 @@ theorem continuousAt_iff_isLittleO {α : Type*} {E : Type*} [NormedRing E] [Norm
   convert (Asymptotics.isLittleO_one_iff (f' := fun (y : α) => f y - f x) (l := 𝓝 x) (F := E)).symm
   exact Iff.symm tendsto_sub_nhds_zero_iff
 
-
 end Asymptotics
 
 namespace Set
@@ -181,7 +180,6 @@ namespace Complex
 /-- A set `U` `HasPrimitives` if, every holomorphic function on `U` has a primitive -/
 def HasPrimitives (U : Set ℂ) : Prop :=
   ∀ f : ℂ → ℂ, DifferentiableOn ℂ f U → ∃ g : ℂ → ℂ, ∀ z ∈ U, HasDerivAt g (f z) z
-
 
 /-%%
 A wedge is the union of a horizontal line and a vertical line.
@@ -617,20 +615,36 @@ theorem deriv_of_wedgeInt_im''' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Cont
     _ ≤ ε  * ‖w - z‖ := by gcongr; apply abs_im_le_abs
 --%% \end{proof}
 
+
+theorem deriv_of_wedgeInt_im'''' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
+  {z : ℂ} (hz : z ∈ ball c r) :
+  (fun w ↦ ∫ y in z.im..w.im, f (z.re + y * I) - f z)
+    =o[𝓝 z] fun w ↦ w - z := by sorry
+
 theorem deriv_of_wedgeInt_im {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
   {z : ℂ} (hz : z ∈ ball c r) :
   (fun w ↦ (∫ y in z.im..w.im, f (w.re + y * I)) - (w - z).im * f z)
-    =o[𝓝 z] fun w ↦ w - z :=
+    =o[𝓝 z] fun w ↦ w - z := by
   calc
-    _ = (fun w ↦ (∫ y in z.im..w.im, f (w.re + y * I)) - (∫ y in z.im..w.im, f (z.re + y * I)))
-        + (fun w ↦ (∫ y in z.im..w.im, f (z.re + y * I)) - (w - z).im * f z) :=
-          by exact (sub_add_sub_cancel _ _ _).symm
+    _ = (fun w:ℂ ↦ (∫ y in z.im..w.im, f (w.re + y * I)) - (∫ y in z.im..w.im, f (z.re + y * I)))
+        + (fun w:ℂ ↦ (∫ y in z.im..w.im, f (z.re + y * I)) - (w - z).im * f z) :=
+          (sub_add_sub_cancel _ _ _).symm
+    _ = (fun w ↦ ∫ y in z.im..w.im, f (w.re + y * I) - f z)
+         - (fun w ↦ ∫ y in z.im..w.im, f (z.re + y * I) - f z)
+         + (fun w ↦ (∫ y in z.im..w.im, f (z.re + y * I)) - (w - z).im * f z) := ?_
     _ =o[𝓝 z] fun w => w - z := by
-      convert (deriv_of_wedgeInt_im''' hf hz).add (deriv_of_wedgeInt_im'' hf hz) using 1
-      ext1 w ; simp
-      sorry
-
-
+      convert ((deriv_of_wedgeInt_im''' hf hz).sub (deriv_of_wedgeInt_im'''' hf hz)).add (deriv_of_wedgeInt_im'' hf hz) using 1
+  congr; ext1 w; simp only [Pi.sub_apply]
+  rw [← intervalIntegral.integral_sub, ← intervalIntegral.integral_sub]
+  · congr; ext1 y; ring
+  · apply ContinuousOn.intervalIntegrable
+    sorry
+  · apply ContinuousOn.intervalIntegrable
+    sorry
+  · apply ContinuousOn.intervalIntegrable
+    sorry
+  · apply ContinuousOn.intervalIntegrable
+    sorry
 
 theorem deriv_of_wedgeInt {c : ℂ} {r : ℝ} {f : ℂ → ℂ}
     (f_cont : ContinuousOn f (ball c r)) (hf : VanishesOnRectanglesInDisc c r f)
