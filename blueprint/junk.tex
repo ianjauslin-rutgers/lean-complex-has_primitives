@@ -1,0 +1,37 @@
+
+Similarly, as $y \to \Im(z)$, the vertical integral of $f$ from $z$ to $\Re(z)+iy$ is equal to
+$(y - \Im(z)) f(z)$, up to $o(y - \Im(z))$.
+\begin{lemma}
+  \label{deriv_of_wedgeInt_im'}
+  \lean{deriv_of_wedgeInt_im'}\leanok
+  As $y \to \Im(z)$,
+  $$
+    \int_{\Im(z)}^y f(\Re(z)+it)\ dt
+    =
+    (y-\Im(z)) f(z)
+    +
+    o(y-\Im(z))
+    .
+  $$
+\end{lemma}
+The proof is the same.
+
+
+
+As before, we extend this to the setting where $w$ is in a neighborhood of $z$.
+\begin{lemma}
+  \label{deriv_of_wedgeInt_im''}
+  \lean{deriv_of_wedgeInt_im''}\leanok
+  As $w \to z$,
+  $$
+    \int_{\Im(z)}^{\Im(w)} f(\Re(z)+iy)\ dy
+    =
+    (\Im(w-z)) f(z)
+    +
+    o(w-z)
+    .
+  $$
+\end{lemma}
+The proof is again the same
+
+

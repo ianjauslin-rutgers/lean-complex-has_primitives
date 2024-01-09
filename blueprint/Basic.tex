@@ -164,7 +164,7 @@ from $z$ to $x + i\Im(z)$ is equal to $(x - \Re(z)) f(z)$, up to $o(x - \Re(z))$
  \end{proof}
 
 
-Therefore as the complex varialbe $w \to z$, the horizontal integral of $f$ from $z$ to
+Therefore as the complex variable $w \to z$, the horizontal integral of $f$ from $z$ to
 $\Re(w)+i\Im(z)$ is equal to $(\Re(w - z)) f(z)$, up to $o(w - z)$.
 \begin{lemma}
   \label{deriv_of_wedgeInt_re}
@@ -173,7 +173,7 @@ $\Re(w)+i\Im(z)$ is equal to $(\Re(w - z)) f(z)$, up to $o(w - z)$.
   $$
     \int_{\Re(z)}^{\Re(w)} f(t + i\Im(z))\ dt
     =
-    (\Re(w-z)) f(z)
+    \Re(w-z) f(z)
     +
     o(w-z)
     .
@@ -188,49 +188,11 @@ $\Re(w)+i\Im(z)$ is equal to $(\Re(w - z)) f(z)$, up to $o(w - z)$.
  \end{proof}
 
 
-Similarly, as $y \to \Im(z)$, the vertical integral of $f$ from $z$ to $\Re(z)+iy$ is equal to
-$(y - \Im(z)) f(z)$, up to $o(y - \Im(z))$.
+For the vertical integral, we need not the integral of $f(\Re(z)+iy)$, but rather that of $f(\Re(w)+iy)$.
+The latter is close to $f(z)$ as $w \to z$; here is an auxiliary lemma.
 \begin{lemma}
   \label{deriv_of_wedgeInt_im'}
   \lean{deriv_of_wedgeInt_im'}\leanok
-  As $y \to \Im(z)$,
-  $$
-    \int_{\Im(z)}^y f(\Re(z)+it)\ dt
-    =
-    (y-\Im(z)) f(z)
-    +
-    o(y-\Im(z))
-    .
-  $$
-\end{lemma}
-The proof is the same.
-
-
-
-As before, we extend this to the setting where $w$ is in a neighborhood of $z$.
-\begin{lemma}
-  \label{deriv_of_wedgeInt_im''}
-  \lean{deriv_of_wedgeInt_im''}\leanok
-  As $w \to z$,
-  $$
-    \int_{\Im(z)}^{\Im(w)} f(\Re(z)+iy)\ dy
-    =
-    (\Im(w-z)) f(z)
-    +
-    o(w-z)
-    .
-  $$
-\end{lemma}
-The proof is again the same
-
-
-
-It turns out that the above lemma is subtly different from what is needed in the application.
-We need not the integral of $f(\Re(z)+iy)$, but rather the integral of $f(\Re(w)+iy)$. These are
-still close as $w \to z$. This lemma prepares for the real thing.
-\begin{lemma}
-  \label{deriv_of_wedgeInt_im'''}
-  \lean{deriv_of_wedgeInt_im'''}
   As $w \to z$,
   $$
     \int_{\Im(z)}^{\Im(w)} (f(\Re(w)+iy) - f (z))\ dy
@@ -243,6 +205,55 @@ still close as $w \to z$. This lemma prepares for the real thing.
 
  \begin{proof}
 
+ Use the fact that the map $w \mapsto f(w)-f(z)$ is $o(1)$ as $w \to z$.
+
+ \end{proof}
+
+
+Then as the complex variable $w \to z$, the vertical integral of $f$ from $\Re(w)+i\Im(z)$ to
+$w$ is equal to $(\Im(w - z)) f(z)$, up to $o(w - z)$.
+\begin{lemma}
+  \label{deriv_of_wedgeInt_im}
+  \lean{deriv_of_wedgeInt_im}\leanok
+  As $w \to z$,
+  $$
+    \int_{\Im(z)}^{\Im(w)} f(\Re(w) + i y)\ dy
+    =
+    \Im(w-z) f(z)
+    +
+    o(w-z)
+    .
+  $$
+\end{lemma}
+
+
+ \begin{proof}
+
+ Convert $\Im(w-z) f(z)$ to $(\Im(w-z)) f(z) - \int_{\Im(z)}^{\Im(w)} f(\Re(w) + i y)\ dy$,
+
+ and apply the previous lemma.
+
+ \end{proof}
+
+
+Putting everything together, we obtain the derivative of the wedge integral.
+\begin{theorem}
+  \label{deriv_of_wedgeInt}
+  \lean{deriv_of_wedgeInt}\leanok
+  As $w \to z$,
+  $$
+    \frac{d}{dw} \int_{z\to_W\  w} f(x)\ dx
+    =
+    f(z)
+    .
+  $$
+  \end{theorem}
+
+
+ \begin{proof}
+
+ Break the wedge integral into two parts, and apply the previous two lemmas.
+
  \end{proof}
 
 
@@ -253,4 +264,42 @@ This is Moreira's theorem.
 Let $f$ be a continuous function on a disc $D(c,r)$, and suppose that $f$ vanishes on rectangles in $D(c,r)$. Then $f$ has a primitive on $D(c,r)$.
 \end {theorem}
 
+
+ \begin{proof} The wedge integral has derivative $f(z)$ at $z$, by the previous lemma. \end{proof}
+
+
+If $f$ is not just continuous but holomorphic, then the integral of $f$ over any rectangle is zero.
+\begin{lemma}
+  \label{vanishesOnRectangles_of_holomorphic}
+  \lean{vanishesOnRectangles_of_holomorphic}\leanok
+  If $f$ is holomorphic on a set $U$, then the rectangle integral of $f$ vanishes, for any rectangle in $U$.
+\end{lemma}
+
+
+ \begin{proof}
+
+ Apply Green's theorem to the rectangle.
+
+ \end{proof}
+
+
+\begin{lemma}
+  \label{vanishesOnRectanglesInDisc_of_holomorphic}
+  \lean{vanishesOnRectanglesInDisc_of_holomorphic}\leanok
+  If $f$ is holomorphic on a disc $D(c,r)$, then $f$ vanishes on rectangles in $D(c,r)$.
+\end{lemma}
+
+
+ \begin{proof} Apply the previous lemma. \end{proof}
+
+
+We finally prove our main theorem, the holomorphic functions on a disc have primitives.
+\begin{theorem}[Primitive of holomorphic functions]
+  \label{hasPrimitives_of_disc}
+  \lean{hasPrimitives_of_disc}\leanok
+  If $f$ is holomorphic on a disc $D(c,r)$, then $f$ has a primitive on $D(c,r)$.
+\end{theorem}
+
+
+ \begin{proof} Apply Moreira's theorem and the previous lemma. \end{proof}
 

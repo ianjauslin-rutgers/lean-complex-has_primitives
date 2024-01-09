@@ -167,6 +167,126 @@ theorem ball_subset_ball₁ {c : ℂ} {r : ℝ} {z : ℂ} (hz : z ∈ ball c r) 
 
 end Metric
 
+section SubsetBall_Aux
+
+/- Auxiliary lemmata about subsets of balls -/
+
+theorem mem_ball_re_aux {c : ℂ} {r : ℝ} {z : ℂ} :
+    (Ioo (z.re - (r - dist z c)) (z.re + (r - dist z c))) ×ℂ {z.im} ⊆ ball z (r - dist z c) := by
+  intro x hx
+  obtain ⟨xRe, xIm⟩ := hx
+  simp only [mem_preimage, mem_singleton_iff, mem_Ioo] at xRe xIm
+  simp only [mem_ball]
+  rw [dist_eq_re_im, xIm]
+  simp only [sub_self, ne_eq, not_false_eq_true, zero_pow', add_zero, Real.sqrt_sq_eq_abs, abs_lt]
+  refine ⟨by linarith, by linarith⟩
+
+theorem mem_ball_re_aux' {c : ℂ} {r : ℝ} {z : ℂ} (hz : z ∈ ball c r) {x : ℝ}
+    (hx : x ∈ Ioo (z.re - (r - dist z c)) (z.re + (r - dist z c))) :
+    x + z.im * I ∈ ball c r := by
+  set r₁ := r - dist z c
+  set s := Ioo (z.re - r₁) (z.re + r₁)
+  have s_ball₁ : s ×ℂ {z.im} ⊆ ball z r₁ := mem_ball_re_aux
+  have s_ball : s ×ℂ {z.im} ⊆ ball c r := Subset.trans s_ball₁ (ball_subset_ball₁ hz)
+  apply s_ball
+  rw [mem_reProdIm]
+  simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+    add_zero, gt_iff_lt, not_lt, ge_iff_le, mem_Ioo, add_im, mul_im, zero_add, mem_singleton_iff,
+    and_true]
+  apply hx
+
+theorem mem_closedBall_aux {c : ℂ} {r : ℝ} {z : ℂ} (z_in_ball : z ∈ closedBall c r)
+    {y : ℝ} (y_in_I : y ∈ Ι c.im z.im) : z.re + y * I ∈ closedBall c r := by
+  rw [mem_closedBall] at z_in_ball ⊢
+  rw [mem_uIoc] at y_in_I
+  apply le_trans ?_ z_in_ball
+  rw [dist_eq_re_im, dist_eq_re_im]
+  apply Real.le_sqrt_of_sq_le
+  rw [Real.sq_sqrt (by positivity)]
+  simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+    add_zero, add_im, mul_im, zero_add, add_le_add_iff_left]
+  cases y_in_I <;> nlinarith
+
+theorem mem_ball_of_map_re_aux {c : ℂ} {r : ℝ} {a₁ a₂ b : ℝ} (ha₁ : a₁ + b * I ∈ ball c r)
+    (ha₂ : a₂ + b * I ∈ ball c r) : (fun (x : ℝ) => x + b * I) '' [[a₁, a₂]] ⊆ ball c r := by
+  convert rectangle_in_convex (convex_ball c r) ha₁ ha₂ ?_ ?_ using 1 <;>
+    simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+      add_zero, add_im, mul_im, zero_add, ha₁, ha₂, Rectangle]
+  simp [horizontalSegment_eq a₁ a₂ b]
+
+theorem mem_ball_of_map_im_aux {c : ℂ} {r : ℝ} {a b₁ b₂ : ℝ} (hb₁ : a + b₁ * I ∈ ball c r)
+    (hb₂ : a + b₂ * I ∈ ball c r) : (fun (y : ℝ) => a + y * I) '' [[b₁, b₂]] ⊆ ball c r := by
+  convert rectangle_in_convex (convex_ball c r) hb₁ hb₂ ?_ ?_ using 1 <;>
+  simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+    add_zero, add_im, mul_im, zero_add, hb₁, hb₂, Rectangle]
+  simp [verticalSegment_eq a b₁ b₂]
+-- NOTE: I don't know why these `simp`s can't be combined.
+
+end SubsetBall_Aux
+
+section ContinuousOn_Aux
+/- Auxiliary lemmata about continuity of various occurring functions -/
+
+theorem ContinuousOn.im_aux_1 {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r)) {z : ℂ}
+    (hz : z ∈ ball c r) (w : ℂ) : ContinuousOn (fun (y : ℝ) => f (w.re + y * I)) [[z.im, w.im]] := by
+  sorry
+
+theorem ContinuousOn.re_aux_1 {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r)) {z : ℂ}
+    (hz : z ∈ ball c r) : ContinuousOn (fun (x : ℝ) => f (x + z.im * I))
+                            (Ioo (z.re - (r - dist z c)) (z.re + (r - dist z c))) := by
+  apply (hf.comp ((continuous_add_right _).comp continuous_ofReal).continuousOn)
+  intro x hx
+  change x + z.im * I ∈ ball c r
+  exact mem_ball_re_aux' hz hx
+
+theorem ContinuousOn.re_aux_2 {c : ℂ} {r : ℝ} {f : ℂ → ℂ}
+    (f_cont : ContinuousOn f (ball c r)) {a₁ a₂ b : ℝ} (ha₁ : a₁ + b * I ∈ ball c r)
+    (ha₂ : a₂ + b * I ∈ ball c r) : ContinuousOn (fun x => f (↑x + ↑b * I)) [[a₁, a₂]] := by
+  convert ContinuousOn.comp (g := f) (f := fun (x : ℝ) => (x : ℂ) + b * I) (s := uIcc a₁ a₂)
+    (t := (fun (x : ℝ) => (x : ℂ) + b * I) '' (uIcc a₁ a₂)) ?_ ?_ (mapsTo_image _ _)
+  · apply f_cont.mono (mem_ball_of_map_re_aux ha₁ ha₂)
+  · exact Continuous.continuousOn (Continuous.comp (continuous_add_right _) continuous_ofReal)
+
+theorem ContinuousOn.im_aux {c : ℂ} {r : ℝ} {f : ℂ → ℂ}
+    (f_cont : ContinuousOn f (ball c r)) {a b₁ b₂ : ℝ} (hb₁ : a + b₁ * I ∈ ball c r) (hb₂ : a + b₂ * I ∈ ball c r) :
+    ContinuousOn (fun (y : ℝ) => f (a + y * I)) [[b₁, b₂]] := by
+  convert ContinuousOn.comp (g := f) (f := fun (y : ℝ) => (a : ℂ) + y * I) (s := uIcc b₁ b₂)
+    (t := (fun (y : ℝ) => (a : ℂ) + y * I) '' (uIcc b₁ b₂)) ?_ ?_ (mapsTo_image _ _)
+  · apply f_cont.mono (mem_ball_of_map_im_aux hb₁ hb₂)
+  · apply Continuous.continuousOn
+    exact ((continuous_add_left _).comp (continuous_mul_right _)).comp continuous_ofReal
+
+end ContinuousOn_Aux
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 namespace Complex
 
 /-%%
@@ -310,30 +430,13 @@ lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} {z : ℂ}
 --%% $\Re(w)+i\Im(z)$.
   let intVIII := I • ∫ y : ℝ in c.im..z.im, f (w.re + y * I)
   have integrableHoriz : ∀ a₁ a₂ b : ℝ, a₁ + b * I ∈ ball c r → a₂ + b * I ∈ ball c r
-    → IntervalIntegrable (fun x => f (x + b * I)) MeasureTheory.volume a₁ a₂
-  · intro a₁ a₂ b ha₁ ha₂
-    apply ContinuousOn.intervalIntegrable
-    convert ContinuousOn.comp (g := f) (f := fun (x : ℝ) => (x : ℂ) + b * I) (s := uIcc a₁ a₂)
-      (t := (fun (x : ℝ) => (x : ℂ) + b * I) '' (uIcc a₁ a₂)) ?_ ?_ (mapsTo_image _ _)
-    · apply f_cont.mono
-      convert rectangle_in_convex (convex_ball c r) ha₁ ha₂ ?_ ?_ using 1 <;>
-        simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
-          add_zero, add_im, mul_im, zero_add, ha₁, ha₂, Rectangle]
-      simp only [le_refl, uIcc_of_le, Icc_self, horizontalSegment_eq a₁ a₂ b]
-    · exact Continuous.continuousOn (Continuous.comp (continuous_add_right _) continuous_ofReal)
+    → IntervalIntegrable (fun x => f (x + b * I)) MeasureTheory.volume a₁ a₂ :=
+      fun a₁ a₂ b ha₁ ha₂ ↦
+        ContinuousOn.intervalIntegrable (f_cont.re_aux_2 ha₁ ha₂)
   have integrableVert : ∀ a b₁ b₂ : ℝ, a + b₁ * I ∈ ball c r → a + b₂ * I ∈ ball c r
     → IntervalIntegrable (fun y => f (a + y * I)) MeasureTheory.volume b₁ b₂
   · intro a b₁ b₂ hb₁ hb₂
-    apply ContinuousOn.intervalIntegrable
-    convert ContinuousOn.comp (g := f) (f := fun (y : ℝ) => (a : ℂ) + y * I) (s := uIcc b₁ b₂)
-      (t := (fun (y : ℝ) => (a : ℂ) + y * I) '' (uIcc b₁ b₂)) ?_ ?_ (mapsTo_image _ _)
-    · apply f_cont.mono
-      convert rectangle_in_convex (convex_ball c r) hb₁ hb₂ ?_ ?_ using 1 <;>
-        simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
-        add_zero, add_im, mul_im, zero_add, hb₁, hb₂, Rectangle]
-      simp only [ le_refl, uIcc_of_le, Icc_self, verticalSegment_eq a b₁ b₂]
-    · apply Continuous.continuousOn
-      exact ((continuous_add_left _).comp (continuous_mul_right _)).comp continuous_ofReal
+    apply ContinuousOn.intervalIntegrable (f_cont.im_aux hb₁ hb₂)
 --%% Then $I_1$ is equal to $I_3+I_7$,
   have intIdecomp : intI = intIII + intVII
   · rw [intervalIntegral.integral_add_adjacent_intervals] <;> apply integrableHoriz
@@ -352,10 +455,9 @@ lemma VanishesOnRectanglesInDisc.diff_of_wedges {c : ℂ} {r : ℝ} {z : ℂ}
   · rw [← sub_eq_zero]
 --%% Moreover, $I_7 - I_5 + I_8 - I_4$ forms a rectangle, and hence its integral is zero.
     have : intVII - intV + intVIII - intIV = 0 := by
-      have wzInBall : w.re + ↑z.im * I ∈ ball c r :=
+      have wzInBall : w.re + z.im * I ∈ ball c r :=
         by exact mem_of_subset_of_mem z_ball (cornerRectangle_in_disc w_in_z_ball)
-      have wcInBall : w.re + c.im * I ∈ ball c r := by
-        exact cornerRectangle_in_disc hzPlusH
+      have wcInBall : w.re + c.im * I ∈ ball c r := cornerRectangle_in_disc hzPlusH
       convert hf (z.re + c.im * I) (w.re + z.im * I) (cornerRectangle_in_disc hz) wzInBall
           (by simpa using hz) (by simpa using wcInBall) using 1
       rw [RectangleIntegral]
@@ -397,32 +499,13 @@ theorem deriv_of_wedgeInt_re' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Contin
   let s : Set ℝ := Ioo (z.re - r₁) (z.re + r₁)
   have zRe_mem_s : z.re ∈ s := by simp [mem_ball.mp hz]
   have s_open : IsOpen s := isOpen_Ioo
-  have s_ball₁ : s ×ℂ {z.im} ⊆ ball z r₁
-  · intro x hx
-    obtain ⟨xRe, xIm⟩ := hx
-    simp only [mem_preimage, mem_singleton_iff, mem_Ioo] at xRe xIm
-    simp only [mem_ball]
-    rw [dist_eq_re_im, xIm]
-    simp only [sub_self, ne_eq, not_false_eq_true, zero_pow', add_zero, Real.sqrt_sq_eq_abs, abs_lt]
-    refine ⟨by linarith, by linarith⟩
-  have s_ball : s ×ℂ {z.im} ⊆ ball c r := Subset.trans s_ball₁ (ball_subset_ball₁ hz)
-  have f_contOn : ContinuousOn (fun (x : ℝ) => f (x + z.im * I)) s
-  · apply (hf.comp ((continuous_add_right _).comp continuous_ofReal).continuousOn)
-    intro w hw
-    change w + z.im * I ∈ ball c r
-    apply s_ball
-    rw [mem_reProdIm]
-    simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
-      add_zero, gt_iff_lt, not_lt, ge_iff_le, mem_Ioo, add_im, mul_im, zero_add, mem_singleton_iff,
-      and_true]
-    apply hw
+  have f_contOn : ContinuousOn (fun (x : ℝ) => f (x + z.im * I)) s := hf.re_aux_1 hz
   have int1 : IntervalIntegrable (fun (x : ℝ) => f (x + z.im * I)) MeasureTheory.volume z.re z.re
   · apply ContinuousOn.intervalIntegrable
     apply f_contOn.mono
     simp [mem_ball.mp hz]
-  have int2 : StronglyMeasurableAtFilter (fun (x : ℝ) => f (x + z.im * I)) (𝓝 z.re)
-  · apply ContinuousOn.stronglyMeasurableAtFilter s_open f_contOn
-    exact zRe_mem_s
+  have int2 : StronglyMeasurableAtFilter (fun (x : ℝ) => f (x + z.im * I)) (𝓝 z.re) :=
+    ContinuousOn.stronglyMeasurableAtFilter s_open f_contOn _ zRe_mem_s
   have int3 : ContinuousAt (fun (x : ℝ) => f (x + z.im * I)) z.re :=
     s_open.continuousOn_iff.mp f_contOn zRe_mem_s
 --%% This is just the fundamental theorem of calculus.
@@ -436,7 +519,7 @@ theorem deriv_of_wedgeInt_re' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Contin
 --%% \end{proof}
 
 /-%%
-Therefore as the complex varialbe $w \to z$, the horizontal integral of $f$ from $z$ to
+Therefore as the complex variable $w \to z$, the horizontal integral of $f$ from $z$ to
 $\Re(w)+i\Im(z)$ is equal to $(\Re(w - z)) f(z)$, up to $o(w - z)$.
 \begin{lemma}
   \label{deriv_of_wedgeInt_re}
@@ -445,7 +528,7 @@ $\Re(w)+i\Im(z)$ is equal to $(\Re(w - z)) f(z)$, up to $o(w - z)$.
   $$
     \int_{\Re(z)}^{\Re(w)} f(t + i\Im(z))\ dt
     =
-    (\Re(w-z)) f(z)
+    \Re(w-z) f(z)
     +
     o(w-z)
     .
@@ -469,107 +552,13 @@ theorem deriv_of_wedgeInt_re {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Continu
   simp
 --%% \end{proof}
 
+
 /-%%
-Similarly, as $y \to \Im(z)$, the vertical integral of $f$ from $z$ to $\Re(z)+iy$ is equal to
-$(y - \Im(z)) f(z)$, up to $o(y - \Im(z))$.
+For the vertical integral, we need not the integral of $f(\Re(z)+iy)$, but rather that of $f(\Re(w)+iy)$.
+The latter is close to $f(z)$ as $w \to z$; here is an auxiliary lemma.
 \begin{lemma}
   \label{deriv_of_wedgeInt_im'}
   \lean{deriv_of_wedgeInt_im'}\leanok
-  As $y \to \Im(z)$,
-  $$
-    \int_{\Im(z)}^y f(\Re(z)+it)\ dt
-    =
-    (y-\Im(z)) f(z)
-    +
-    o(y-\Im(z))
-    .
-  $$
-\end{lemma}
-The proof is the same.
-%%-/
-theorem deriv_of_wedgeInt_im' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
-  {z : ℂ} (hz : z ∈ ball c r) :
-  (fun (y : ℝ) ↦ (∫ t in z.im..y, f (z.re + t * I)) - (y - z.im) * f z)
-    =o[𝓝 z.im] fun y ↦ y - z.im := by
-  let r₁ := r - dist z c
-  have : 0 < r₁ := by simp only [mem_ball, gt_iff_lt] at hz ⊢; linarith
-  let s : Set ℝ := Ioo (z.im - r₁) (z.im + r₁)
-  have zIm_mem_s : z.im ∈ s := by simp [mem_ball.mp hz]
-  have s_open : IsOpen s := isOpen_Ioo
-  have s_ball₁ : {z.re} ×ℂ s ⊆ ball z r₁
-  · intro x hx
-    obtain ⟨xRe, xIm⟩ := hx
-    simp only [mem_preimage, mem_singleton_iff, mem_Ioo] at xRe xIm
-    simp only [mem_ball]
-    rw [dist_eq_re_im, xRe]
-    simp only [sub_self, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow', zero_add,
-      sub_nonneg, Real.sqrt_sq_eq_abs, abs_lt, neg_sub]
-    refine ⟨by linarith, by linarith⟩
-  have s_ball : {z.re} ×ℂ s ⊆ ball c r := Subset.trans s_ball₁ (ball_subset_ball₁ hz)
-  have f_contOn : ContinuousOn (fun (y : ℝ) => f (z.re + y * I)) s
-  · apply hf.comp (((continuous_add_left _).comp (continuous_mul_right _)).comp
-      continuous_ofReal).continuousOn
-    intro w hw
-    simp only [Function.comp_apply, mem_ball]
-    apply s_ball
-    rw [mem_reProdIm]
-    simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
-      add_zero, mem_singleton_iff, add_im, mul_im, zero_add, gt_iff_lt, not_lt, ge_iff_le, mem_Ioo,
-      true_and]
-    apply hw
-  have int1 : IntervalIntegrable (fun y => f (z.re + y * I)) MeasureTheory.volume z.im z.im
-  · apply ContinuousOn.intervalIntegrable
-    apply f_contOn.mono
-    simp [mem_ball.mp hz]
-  have int2 : StronglyMeasurableAtFilter (fun (y : ℝ) => f (z.re + y * I)) (𝓝 z.im)
-  · apply ContinuousOn.stronglyMeasurableAtFilter s_open f_contOn
-    exact zIm_mem_s
-  have int3 : ContinuousAt (fun (y : ℝ) => f (z.re + y * I)) z.im :=
-    s_open.continuousOn_iff.mp f_contOn zIm_mem_s
-  have := @intervalIntegral.integral_hasDerivAt_right (f := fun (y : ℝ) ↦ f (z.re + y * I))
-    (a := z.im) (b := z.im) _ _ _ int1 int2 int3
-  dsimp [HasDerivAt, HasDerivAtFilter, HasFDerivAtFilter] at this
-  simp only [intervalIntegral.integral_same, sub_zero, re_add_im, map_sub] at this
-  convert this using 3
-  ring_nf
-  congr
-
-/-%%
-As before, we extend this to the setting where $w$ is in a neighborhood of $z$.
-\begin{lemma}
-  \label{deriv_of_wedgeInt_im''}
-  \lean{deriv_of_wedgeInt_im''}\leanok
-  As $w \to z$,
-  $$
-    \int_{\Im(z)}^{\Im(w)} f(\Re(z)+iy)\ dy
-    =
-    (\Im(w-z)) f(z)
-    +
-    o(w-z)
-    .
-  $$
-\end{lemma}
-The proof is again the same
-%%-/
-theorem deriv_of_wedgeInt_im'' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
-  {z : ℂ} (hz : z ∈ ball c r) :
-  (fun (w : ℂ) ↦ (∫ y in z.im..w.im, f (z.re + y * I)) - (w - z).im * f z)
-    =o[𝓝 z] fun (w : ℂ) ↦ w - z := by
-  have zImTendsTo : Filter.Tendsto (fun (w : ℂ) ↦ w.im) (𝓝 z) (𝓝 z.im) :=
-    by apply Continuous.tendsto Complex.continuous_im
-  have := (deriv_of_wedgeInt_im' hf hz).comp_tendsto zImTendsTo
-  have := this.trans_isBigO im_isBigO
-  convert this using 2
-  congr
-  simp
-
-/-%%
-It turns out that the above lemma is subtly different from what is needed in the application.
-We need not the integral of $f(\Re(z)+iy)$, but rather the integral of $f(\Re(w)+iy)$. These are
-still close as $w \to z$. This lemma prepares for the real thing.
-\begin{lemma}
-  \label{deriv_of_wedgeInt_im'''}
-  \lean{deriv_of_wedgeInt_im'''}
   As $w \to z$,
   $$
     \int_{\Im(z)}^{\Im(w)} (f(\Re(w)+iy) - f (z))\ dy
@@ -579,7 +568,7 @@ still close as $w \to z$. This lemma prepares for the real thing.
   $$
 \end{lemma}
 %%-/
-theorem deriv_of_wedgeInt_im''' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
+theorem deriv_of_wedgeInt_im' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
   {z : ℂ} (hz : z ∈ ball c r) :
   (fun w ↦ ∫ y in z.im..w.im, f (w.re + y * I) - f z)
     =o[𝓝 z] fun w ↦ w - z := by
@@ -595,63 +584,72 @@ theorem deriv_of_wedgeInt_im''' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : Cont
   have : ∀ᶠ (w : ℂ) in 𝓝 z, ∀ y ∈ Ι z.im w.im, ‖f (w.re + y * I) - f z‖ ≤ ε
   · rw [Metric.nhds_basis_closedBall.eventually_iff] at this ⊢
     obtain ⟨i, i_pos, hi⟩ := this
-    refine ⟨i, i_pos, ?_⟩
-    intro w w_in_ball y y_in_I
-    apply hi
-    rw [mem_closedBall] at w_in_ball ⊢
-    rw [mem_uIoc] at y_in_I
-    apply le_trans ?_ w_in_ball
-    rw [dist_eq_re_im, dist_eq_re_im]
-    apply Real.le_sqrt_of_sq_le
-    rw [Real.sq_sqrt (by positivity)]
-    simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
-      add_zero, add_im, mul_im, zero_add, add_le_add_iff_left]
-    cases y_in_I <;> nlinarith
+    refine ⟨i, i_pos, fun w w_in_ball y y_in_I ↦ hi (mem_closedBall_aux w_in_ball y_in_I)⟩
   apply this.mono ?_
-  intro w hw
-  calc
+  exact fun w hw ↦ calc
     _ ≤ ε * |w.im - z.im|  := intervalIntegral.norm_integral_le_of_norm_le_const hw
     _ = ε * |(w - z).im| := by simp
     _ ≤ ε  * ‖w - z‖ := by gcongr; apply abs_im_le_abs
 --%% \end{proof}
 
-
-theorem deriv_of_wedgeInt_im'''' {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
-  {z : ℂ} (hz : z ∈ ball c r) :
-  (fun w ↦ ∫ y in z.im..w.im, f (z.re + y * I) - f z)
-    =o[𝓝 z] fun w ↦ w - z := by sorry
-
+/-%%
+Then as the complex variable $w \to z$, the vertical integral of $f$ from $\Re(w)+i\Im(z)$ to
+$w$ is equal to $(\Im(w - z)) f(z)$, up to $o(w - z)$.
+\begin{lemma}
+  \label{deriv_of_wedgeInt_im}
+  \lean{deriv_of_wedgeInt_im}\leanok
+  As $w \to z$,
+  $$
+    \int_{\Im(z)}^{\Im(w)} f(\Re(w) + i y)\ dy
+    =
+    \Im(w-z) f(z)
+    +
+    o(w-z)
+    .
+  $$
+\end{lemma}
+%%-/
+/--   The vertical integral of `f` from `w.re + z.im * I` to `w` is equal to `(w - z).im * f z`
+  up to `o(w - z)`, as `w` tends to `z`. -/
 theorem deriv_of_wedgeInt_im {c : ℂ} {r : ℝ} {f : ℂ → ℂ} (hf : ContinuousOn f (ball c r))
   {z : ℂ} (hz : z ∈ ball c r) :
   (fun w ↦ (∫ y in z.im..w.im, f (w.re + y * I)) - (w - z).im * f z)
     =o[𝓝 z] fun w ↦ w - z := by
+--%% \begin{proof}
+--%% Convert $\Im(w-z) f(z)$ to $(\Im(w-z)) f(z) - \int_{\Im(z)}^{\Im(w)} f(\Re(w) + i y)\ dy$,
+--%% and apply the previous lemma.
   calc
-    _ = (fun w:ℂ ↦ (∫ y in z.im..w.im, f (w.re + y * I)) - (∫ y in z.im..w.im, f (z.re + y * I)))
-        + (fun w:ℂ ↦ (∫ y in z.im..w.im, f (z.re + y * I)) - (w - z).im * f z) :=
-          (sub_add_sub_cancel _ _ _).symm
-    _ = (fun w ↦ ∫ y in z.im..w.im, f (w.re + y * I) - f z)
-         - (fun w ↦ ∫ y in z.im..w.im, f (z.re + y * I) - f z)
-         + (fun w ↦ (∫ y in z.im..w.im, f (z.re + y * I)) - (w - z).im * f z) := ?_
-    _ =o[𝓝 z] fun w => w - z := by
-      convert ((deriv_of_wedgeInt_im''' hf hz).sub (deriv_of_wedgeInt_im'''' hf hz)).add (deriv_of_wedgeInt_im'' hf hz) using 1
-  congr; ext1 w; simp only [Pi.sub_apply]
-  rw [← intervalIntegral.integral_sub, ← intervalIntegral.integral_sub]
-  · congr; ext1 y; ring
-  · apply ContinuousOn.intervalIntegrable
-    sorry
-  · apply ContinuousOn.intervalIntegrable
-    sorry
-  · apply ContinuousOn.intervalIntegrable
-    sorry
-  · apply ContinuousOn.intervalIntegrable
-    sorry
+    _ = (fun w:ℂ ↦ (∫ y in z.im..w.im, f (w.re + y * I)) - (∫ _ in z.im..w.im, f z)) := by congr! 2; simp
+    _ = (fun w ↦ ∫ y in z.im..w.im, f (w.re + y * I) - f z) := ?_
+    _ =o[𝓝 z] fun w => w - z := deriv_of_wedgeInt_im' hf hz
+  ext1 w
+  rw [intervalIntegral.integral_sub ?_ continuousOn_const.intervalIntegrable]
+  exact (hf.im_aux_1 hz w).intervalIntegrable
+--%% \end{proof}
 
+/-%%
+Putting everything together, we obtain the derivative of the wedge integral.
+\begin{theorem}
+  \label{deriv_of_wedgeInt}
+  \lean{deriv_of_wedgeInt}\leanok
+  As $w \to z$,
+  $$
+    \frac{d}{dw} \int_{z\to_W\  w} f(x)\ dx
+    =
+    f(z)
+    .
+  $$
+  \end{theorem}
+%%-/
+/-- The `WedgeInt` has derivative at `z` equal to `f z`. -/
 theorem deriv_of_wedgeInt {c : ℂ} {r : ℝ} {f : ℂ → ℂ}
     (f_cont : ContinuousOn f (ball c r)) (hf : VanishesOnRectanglesInDisc c r f)
     {z : ℂ} (hz : z ∈ ball c r) :
     HasDerivAt (fun w => WedgeInt c w f) (f z) z := by
+--%% \begin{proof}
   have : 0 < r := pos_of_mem_ball hz
   dsimp [HasDerivAt, HasDerivAtFilter, HasFDerivAtFilter]
+--%% Break the wedge integral into two parts, and apply the previous two lemmas.
   calc
     _ =ᶠ[𝓝 z] (fun w ↦ WedgeInt z w f - (w - z) * f z) := ?_
     _ = (fun w ↦ (∫ x in z.re..w.re, f (↑x + ↑z.im * I)) - (w - z).re * f z)
@@ -668,8 +666,8 @@ theorem deriv_of_wedgeInt {c : ℂ} {r : ℝ} {f : ℂ → ℂ}
     _ = intI + I * intII - ((w - z).re + (w - z).im * I) * f z := by congr; rw [re_add_im]
     _ = intI + I * intII - ((w.re - z.re) + (w.im - z.im) * I) * f z := by simp
     _ = intI - (w.re - z.re) * f z + I * (intII - (w.im - z.im) * f z) := by ring
+--%% \end{proof}
 
-/-- Moreira's theorem
 /-%%
 This is Moreira's theorem.
 \begin {theorem}[Moreira's theorem]
@@ -678,17 +676,31 @@ This is Moreira's theorem.
 Let $f$ be a continuous function on a disc $D(c,r)$, and suppose that $f$ vanishes on rectangles in $D(c,r)$. Then $f$ has a primitive on $D(c,r)$.
 \end {theorem}
 %%-/
--/
+/-- ** Moreira's theorem ** A function `f` which is continuous on a disc and whose integral on rectangles
+  in the disc vanishes has a primitive on the disc. -/
 theorem moreiras_theorem {c : ℂ} {r : ℝ} {f : ℂ → ℂ}
     (hf : ContinuousOn f (ball c r))
     (hf₂ : VanishesOnRectanglesInDisc c r f) :
     ∃ g : ℂ → ℂ, ∀ z ∈ (ball c r), HasDerivAt g (f z) z :=
   ⟨fun z ↦ WedgeInt c z f, fun _ hz ↦ deriv_of_wedgeInt hf hf₂ hz⟩
+--%% \begin{proof} The wedge integral has derivative $f(z)$ at $z$, by the previous lemma. \end{proof}
 
+/-%%
+If $f$ is not just continuous but holomorphic, then the integral of $f$ over any rectangle is zero.
+\begin{lemma}
+  \label{vanishesOnRectangles_of_holomorphic}
+  \lean{vanishesOnRectangles_of_holomorphic}\leanok
+  If $f$ is holomorphic on a set $U$, then the rectangle integral of $f$ vanishes, for any rectangle in $U$.
+\end{lemma}
+%%-/
+/-- If `f` is `DifferentiableOn` a set `U`, then the rectangle integral of `f` vanishes, for any
+  rectangle in `U`. -/
 theorem vanishesOnRectangles_of_holomorphic {f : ℂ → ℂ} {U : Set ℂ} {z w : ℂ}
     (hf : DifferentiableOn ℂ f U)
     (hU : Rectangle z w ⊆ U) :
     RectangleIntegral f z w = 0 := by
+--%% \begin{proof}
+--%% Apply Green's theorem to the rectangle.
   convert integral_boundary_rect_eq_zero_of_differentiable_on_off_countable f z w ∅ (by simp)
     ((hf.mono hU).continuousOn) ?_ using 1
   intro x hx
@@ -702,14 +714,34 @@ theorem vanishesOnRectangles_of_holomorphic {f : ℂ → ℂ} {U : Set ℂ} {z w
     constructor <;> convert uIoo_subset_uIcc _ _ using 1
   · exact IsOpen.reProdIm isOpen_Ioo isOpen_Ioo
   · convert hx using 1; simp
+--%% \end{proof}
 
+/-%%
+\begin{lemma}
+  \label{vanishesOnRectanglesInDisc_of_holomorphic}
+  \lean{vanishesOnRectanglesInDisc_of_holomorphic}\leanok
+  If $f$ is holomorphic on a disc $D(c,r)$, then $f$ vanishes on rectangles in $D(c,r)$.
+\end{lemma}
+%%-/
+/-- If `f` is `DifferentiableOn` a disc, then `f` vanishes on rectangles in the disc. -/
 theorem vanishesOnRectanglesInDisc_of_holomorphic {c : ℂ} {r : ℝ} {f : ℂ → ℂ}
     (hf : DifferentiableOn ℂ f (ball c r)) :
-    VanishesOnRectanglesInDisc c r f := fun z w hz hw hz' hw' ↦
+    VanishesOnRectanglesInDisc c r f := fun _ _ hz hw hz' hw' ↦
   vanishesOnRectangles_of_holomorphic hf (rectangle_in_convex (convex_ball c r) hz hw hz' hw')
+--%% \begin{proof} Apply the previous lemma. \end{proof}
 
--- To prove the main theorem, we first prove it on a disc
+/-%%
+We finally prove our main theorem, the holomorphic functions on a disc have primitives.
+\begin{theorem}[Primitive of holomorphic functions]
+  \label{hasPrimitives_of_disc}
+  \lean{hasPrimitives_of_disc}\leanok
+  If $f$ is holomorphic on a disc $D(c,r)$, then $f$ has a primitive on $D(c,r)$.
+\end{theorem}
+%%-/
+/-- ** Primitive of holomorphic functions on discs ** A holomorphic function on a disc has
+  primitives. -/
 theorem hasPrimitives_of_disc (c : ℂ) {r : ℝ} : HasPrimitives (ball c r) :=
   fun _ hf ↦ moreiras_theorem hf.continuousOn (vanishesOnRectanglesInDisc_of_holomorphic hf)
+--%% \begin{proof} Apply Moreira's theorem and the previous lemma. \end{proof}
 
 end Complex
